@@ -1,0 +1,46 @@
+# Dépendances
+node_modules/
+.pnp
+.pnp.js
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.metro-health-check*
+
+# Projets natifs : régénérés par `expo prebuild` (CNG)
+/android
+/ios
+.kotlin/
+
+# Secrets de signature
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Variables d'environnement
+.env
+.env*.local
+!.env.example
+
+# Build & outils
+*.tsbuildinfo
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Éditeurs & OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Documentation et hooks PocketBase : source des fichiers déployés sur le VPS,
+# hors du dépôt front-end.
+ignore-docs/
