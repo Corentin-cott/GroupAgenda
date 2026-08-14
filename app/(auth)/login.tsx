@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { ActivityIndicator, Button, StyleSheet, Text, TextInput, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { StyleSheet, Text } from 'react-native';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import type { Href } from 'expo-router';
+import { PrimaryButton } from '@/components/PrimaryButton';
 import { Screen } from '@/components/Screen';
+import { TextField } from '@/components/TextField';
 import { useAuth } from '@/providers/AuthProvider';
+import { colors } from '@/theme/colors';
 
 export default function LoginScreen() {
   const { signIn } = useAuth();
@@ -29,9 +32,10 @@ export default function LoginScreen() {
   return (
     <Screen centered maxWidth={420}>
       <Text style={styles.title}>Connexion</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
+
+      <TextField
+        label="Email"
+        placeholder="toi@exemple.fr"
         autoCapitalize="none"
         autoComplete="email"
         keyboardType="email-address"
@@ -39,9 +43,8 @@ export default function LoginScreen() {
         value={email}
         onChangeText={setEmail}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Mot de passe"
+      <TextField
+        label="Mot de passe"
         secureTextEntry
         autoComplete="current-password"
         textContentType="password"
@@ -49,17 +52,23 @@ export default function LoginScreen() {
         onChangeText={setPassword}
         onSubmitEditing={onSubmit}
       />
-      {error && <Text style={styles.error}>{error}</Text>}
-      <View style={styles.action}>
-        {pending ? <ActivityIndicator /> : <Button title="Se connecter" onPress={onSubmit} />}
-      </View>
+
+      {!!error && <Text style={styles.error}>{error}</Text>}
+
+      <PrimaryButton label="Se connecter" onPress={onSubmit} pending={pending} />
+
+      <Link
+        href={{ pathname: '/register', params: redirect ? { redirect } : undefined }}
+        style={styles.link}
+      >
+        Créer un compte
+      </Link>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 28, fontWeight: '600' },
-  input: { borderWidth: 1, borderColor: '#d0d0d0', borderRadius: 8, padding: 12 },
-  error: { color: '#c0392b' },
-  action: { minHeight: 44, justifyContent: 'center' },
+  title: { fontSize: 28, fontWeight: '600', color: colors.text, marginBottom: 4 },
+  error: { color: colors.danger },
+  link: { color: colors.accent, textAlign: 'center', paddingVertical: 8 },
 });

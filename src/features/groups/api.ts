@@ -11,6 +11,11 @@ export function getGroup(groupId: string): Promise<GroupRecord> {
   return pb.collection('groups').getOne(groupId, { requestKey: `group_${groupId}` });
 }
 
+/** Le créateur est inscrit comme premier membre par un hook serveur. */
+export function createGroup(name: string): Promise<GroupRecord> {
+  return pb.collection('groups').create({ name: name.trim() });
+}
+
 /** 64 caractères URL-safe : `octet & 63` est non biaisé, 256 étant divisible par 64. */
 const TOKEN_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
 
@@ -22,7 +27,7 @@ export async function generateInviteToken(length = 32): Promise<string> {
   return token;
 }
 
-function buildInviteUrl(token: string): string {
+export function buildInviteUrl(token: string): string {
   const base = process.env.EXPO_PUBLIC_APP_URL?.replace(/\/+$/, '');
   // Sans URL publique configurée, on retombe sur le schéma local (dev, Expo Go).
   return base ? `${base}/invite/${token}` : Linking.createURL(`/invite/${token}`);
@@ -54,6 +59,25 @@ export async function createGroupInvite(
 
 export function revokeGroupInvite(inviteId: string): Promise<boolean> {
   return pb.collection('group_invites').delete(inviteId);
+}
+
+export interface ActiveInvite {
+  id: string;
+  token: string;
+  expires: string;
+  created: string;
+  createdBy: string | null;
+}
+
+/**
+ * Liens actifs d'un groupe, réservés à ses membres. `group_invites` n'étant
+ * pas listable, seul le serveur peut restreindre les tokens à un groupe donné.
+ */
+export function listGroupInvites(groupId: string): Promise<ActiveInvite[]> {
+  return pb.send<ActiveInvite[]>(`/api/groups/${encodeURIComponent(groupId)}/invites`, {
+    method: 'GET',
+    requestKey: `group_invites_${groupId}`,
+  });
 }
 
 export interface InvitePreview {
