@@ -10,7 +10,9 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "fr.groupagenda.app",
-      "associatedDomains": ["applinks:agenda.mon-domaine.fr"]
+      "associatedDomains": [
+        "applinks:agenda.mon-domaine.fr"
+      ]
     },
     "android": {
       "package": "fr.groupagenda.app",
@@ -19,8 +21,16 @@
         {
           "action": "VIEW",
           "autoVerify": true,
-          "data": [{ "scheme": "https", "host": "agenda.mon-domaine.fr" }],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "data": [
+            {
+              "scheme": "https",
+              "host": "agenda.mon-domaine.fr"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -33,8 +43,12 @@
       "expo-secure-store",
       [
         "expo-splash-screen",
-        { "backgroundColor": "#ffffff", "resizeMode": "contain" }
-      ]
+        {
+          "backgroundColor": "#ffffff",
+          "resizeMode": "contain"
+        }
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,

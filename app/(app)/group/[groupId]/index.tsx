@@ -1,13 +1,16 @@
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
-import { Link, Stack, useLocalSearchParams } from 'expo-router';
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text } from 'react-native';
+import { Link, Stack, router, useLocalSearchParams } from 'expo-router';
+import { PrimaryButton } from '@/components/PrimaryButton';
 import { Screen } from '@/components/Screen';
 import { useGroupEvents } from '@/hooks/useGroupEvents';
-import { parsePbDate } from '@/lib/date';
+import { useGroupRsvpCounts } from '@/hooks/useGroupRsvpCounts';
+import { formatEventDate } from '@/lib/date';
 import { colors } from '@/theme/colors';
 
 export default function GroupAgendaScreen() {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const { events, isLoading, error, refresh } = useGroupEvents(groupId);
+  const rsvpCounts = useGroupRsvpCounts(groupId);
 
   const screenOptions = {
     title: 'Agenda',
@@ -34,20 +37,30 @@ export default function GroupAgendaScreen() {
   return (
     <Screen>
       <Stack.Screen options={screenOptions} />
+
       <FlatList
         data={events}
         keyExtractor={(item) => item.id}
         refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} />}
-        ListEmptyComponent={<Text style={styles.empty}>Aucun événement.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>Aucun événement pour l'instant.</Text>}
         renderItem={({ item }) => (
-          <View style={styles.row}>
+          <Pressable
+            style={styles.row}
+            onPress={() => router.push(`/group/${groupId}/event/${item.id}`)}
+          >
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.meta}>
-              {parsePbDate(item.start_date)?.toLocaleString() ?? 'Date à définir'}
-              {item.type === 'rsvp' ? ' · inscription requise' : ''}
+              {formatEventDate(item.start_date)}
+              {item.type === 'rsvp' && ` · ${rsvpCounts[item.id] ?? 0} inscrit${(rsvpCounts[item.id] ?? 0) > 1 ? 's' : ''}`}
             </Text>
-          </View>
+          </Pressable>
         )}
+      />
+
+      <PrimaryButton
+        label="Nouvel événement"
+        onPress={() => router.push(`/group/${groupId}/event/new`)}
+        style={styles.cta}
       />
     </Screen>
   );
@@ -64,4 +77,5 @@ const styles = StyleSheet.create({
   meta: { color: colors.muted, marginTop: 2 },
   empty: { textAlign: 'center', marginTop: 32, color: colors.muted },
   error: { color: colors.danger, textAlign: 'center' },
+  cta: { marginTop: 12 },
 });
