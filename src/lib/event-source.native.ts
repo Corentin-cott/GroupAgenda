@@ -2,12 +2,7 @@ import RNEventSource from 'react-native-sse';
 
 type SSEListener = (event: any) => void;
 
-/**
- * React Native n'implémente pas `EventSource`, dont dépend le temps réel
- * PocketBase. `react-native-sse` assure le transport mais n'expose que
- * `addEventListener`, alors que le SDK assigne `onerror` / `onmessage` en
- * propriétés : sans ce pont, la reconnexion ne se déclenche jamais.
- */
+/** RN n'a pas d'EventSource, et react-native-sse n'expose pas les `onerror`/`onmessage` que le SDK assigne. */
 class EventSourceAdapter {
   static readonly CONNECTING = 0;
   static readonly OPEN = 1;

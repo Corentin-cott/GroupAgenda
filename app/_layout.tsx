@@ -22,8 +22,7 @@ function RootNavigator() {
     if (ready) void SplashScreen.hideAsync();
   }, [ready]);
 
-  // Sans ça, les conteneurs de React Navigation gardent leur gris par défaut
-  // derrière les écrans — visible aux transitions et dans les marges sûres.
+  // Sinon les conteneurs de React Navigation gardent leur gris par défaut.
   const navigationTheme = useMemo(() => {
     const base = theme.scheme === 'dark' ? DarkTheme : DefaultTheme;
     return {
@@ -39,8 +38,7 @@ function RootNavigator() {
     };
   }, [theme]);
 
-  // Rien tant que la session et le thème ne sont pas restaurés : évite le flash
-  // de l'écran de login, et celui d'un thème clair chez quelqu'un en sombre.
+  // Rien tant que session et thème ne sont pas restaurés : évite les flashs.
   if (!ready) return null;
 
   return (

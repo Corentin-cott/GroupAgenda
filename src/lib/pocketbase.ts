@@ -10,8 +10,7 @@ if (!baseUrl) {
   throw new Error('EXPO_PUBLIC_POCKETBASE_URL manquant (cf. .env.example)');
 }
 
-// `initial` n'est pas utilisé : AsyncAuthStore le charge dans une file interne,
-// sans moyen de savoir quand la restauration est terminée. On la pilote nous-mêmes.
+// `initial` non utilisé : sa restauration est asynchrone, sans signal de fin.
 const authStore = new AsyncAuthStore({
   save: (serialized) => authStorage.set(AUTH_STORAGE_KEY, serialized),
   clear: () => authStorage.remove(AUTH_STORAGE_KEY),

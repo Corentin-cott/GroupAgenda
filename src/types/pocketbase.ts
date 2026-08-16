@@ -63,11 +63,7 @@ export interface Schema {
   group_invites: GroupInviteRecord;
 }
 
-/**
- * `Omit` est indispensable : dans une simple intersection, la signature
- * `collection(idOrName: string)` héritée de la classe gagne la résolution de
- * surcharge et tout retombe en `RecordModel`.
- */
+/** `Omit` indispensable : sinon la signature héritée gagne la surcharge et tout retombe en `RecordModel`. */
 export type TypedPocketBase = Omit<PocketBase, 'collection'> & {
   collection<K extends keyof Schema>(idOrName: K): RecordService<Schema[K]>;
   collection(idOrName: string): RecordService;

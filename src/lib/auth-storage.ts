@@ -25,8 +25,7 @@ const webStorage: AuthStorage = {
   },
 };
 
-// SecureStore plafonne à ~2048 octets par entrée sur Android, or la payload
-// PocketBase (JWT + record user) dépasse régulièrement : on découpe.
+// SecureStore plafonne à ~2048 o sur Android, la payload dépasse : on découpe.
 const CHUNK_SIZE = 1800;
 const countKey = (key: string) => `${key}_count`;
 const chunkKey = (key: string, i: number) => `${key}_${i}`;

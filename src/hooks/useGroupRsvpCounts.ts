@@ -7,11 +7,7 @@ import type { RsvpRecord } from '@/types/pocketbase';
 
 const isAbort = (error: unknown) => error instanceof ClientResponseError && error.isAbort;
 
-/**
- * Nombre d'inscrits par événement, pour la liste d'agenda. Les compteurs sont
- * ajustés à la volée : les règles d'API ne laissent passer que les RSVP des
- * groupes de l'utilisateur, et un id d'événement inconnu ne gêne personne.
- */
+/** Inscrits par événement, ajustés à la volée. Un id inconnu ne crée qu'une entrée inutilisée. */
 export function useGroupRsvpCounts(groupId: string | undefined): Record<string, number> {
   const { user } = useAuth();
   const [counts, setCounts] = useState<Record<string, number>>({});

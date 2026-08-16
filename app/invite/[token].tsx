@@ -31,9 +31,7 @@ export default function InviteScreen() {
   const [status, setStatus] = useState<Status>('loading');
   const [errorReason, setErrorReason] = useState<string>('network');
 
-  // L'aperçu ne demande pas de session : on ne renvoie vers le login qu'une
-  // fois le lien reconnu valide. `user` en dépendance -> `alreadyMember` est
-  // recalculé au retour de connexion.
+  // Aperçu sans session : on ne renvoie au login qu'un lien reconnu valide.
   useEffect(() => {
     if (!token || isAuthLoading) return;
     let active = true;
@@ -88,8 +86,7 @@ export default function InviteScreen() {
     );
   }
 
-  // Lien valide, visiteur non connecté : passage par l'authentification en
-  // conservant l'URL, puis retour ici.
+  // Lien valide, visiteur non connecté : login puis retour ici.
   if (!isAuthenticated || !user) {
     return <Redirect href={{ pathname: '/login', params: { redirect: `/invite/${token}` } }} />;
   }

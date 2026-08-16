@@ -30,10 +30,7 @@ export function createEvent(
   });
 }
 
-/**
- * `group` est renvoyé dans le corps alors qu'il ne change jamais : la règle
- * `update` compare `@request.body.group`, qui est vide si le champ est absent.
- */
+/** `group` est renvoyé bien qu'inchangé : la règle `update` compare `@request.body.group`. */
 export function updateEvent(
   eventId: string,
   groupId: string,

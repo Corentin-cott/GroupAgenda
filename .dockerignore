@@ -1,0 +1,22 @@
+node_modules
+.git
+.gitignore
+.expo
+dist
+dist-check
+web-build
+ignore-docs
+.idea
+.vscode
+android
+ios
+
+# Jamais dans l'image : les valeurs de production passent par les build args.
+.env
+.env.local
+.env.*.local
+
+Dockerfile
+docker-compose.yml
+.dockerignore
+*.log

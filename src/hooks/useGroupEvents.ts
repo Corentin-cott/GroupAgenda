@@ -21,10 +21,7 @@ const upsert = (list: EventRecord[], record: EventRecord) =>
 
 const isAbort = (error: unknown) => error instanceof ClientResponseError && error.isAbort;
 
-/**
- * Événements d'un groupe, synchronisés en temps réel. Les règles d'API font
- * foi : un non-membre reçoit 403/404 sur la requête comme sur l'abonnement.
- */
+/** Événements d'un groupe, synchronisés en temps réel. */
 export function useGroupEvents(groupId: string | undefined): UseGroupEventsResult {
   const { user } = useAuth();
   const [events, setEvents] = useState<EventRecord[]>([]);
@@ -72,8 +69,7 @@ export function useGroupEvents(groupId: string | undefined): UseGroupEventsResul
 
     void (async () => {
       try {
-        // Abonnement avant le fetch initial : aucune mutation ne peut se
-        // glisser dans l'intervalle.
+        // Abonnement avant le fetch : aucune mutation perdue dans l'intervalle.
         const unsub = await pb.collection('events').subscribe(
           '*',
           (e: RecordSubscription<EventRecord>) => {
@@ -99,8 +95,7 @@ export function useGroupEvents(groupId: string | undefined): UseGroupEventsResul
         }
         unsubscribe = unsub;
       } catch (err) {
-        // Proxy sans SSE, réseau coupé : on dégrade en snapshot plutôt que de
-        // casser l'écran.
+        // Pas de temps réel : on dégrade en snapshot.
         if (active && !isAbort(err)) console.warn('[useGroupEvents] realtime KO', err);
       }
 

@@ -58,11 +58,7 @@ export function useTheme(): ThemeContextValue {
   return context;
 }
 
-/**
- * Les StyleSheet étant statiques, chaque écran reconstruit les siens quand le
- * thème change. La fabrique doit être définie au niveau module pour rester
- * stable d'un rendu à l'autre.
- */
+/** Reconstruit les styles au changement de thème. Fabrique au niveau module pour rester stable. */
 export function useThemedStyles<T>(factory: (theme: Theme) => T): T {
   const { theme } = useTheme();
   return useMemo(() => factory(theme), [factory, theme]);

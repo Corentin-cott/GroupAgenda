@@ -12,12 +12,7 @@ interface ScreenProps {
   style?: StyleProp<ViewStyle>;
 }
 
-/**
- * Colonne fluide, bornée en largeur et centrée. Le dimensionnement est laissé
- * au flex plutôt qu'à un breakpoint lu en JS : `useWindowDimensions` comme
- * `onLayout` donnent la bonne valeur au montage mais ne rafraîchissent pas au
- * redimensionnement de la fenêtre web.
- */
+/** Colonne centrée et bornée. Au flex, pas au breakpoint JS : celui-ci ne suit pas le redimensionnement web. */
 export function Screen({ children, centered = false, maxWidth = 720, style }: ScreenProps) {
   const { theme } = useTheme();
 
@@ -48,7 +43,7 @@ export function Screen({ children, centered = false, maxWidth = 720, style }: Sc
   );
 }
 
-/** Options d'en-tête accordées au thème, à étaler dans `<Stack.Screen options>`. */
+/** En-têtes accordés au thème, à étaler dans `<Stack.Screen options>`. */
 export function headerOptions(theme: Theme) {
   return {
     headerStyle: { backgroundColor: theme.colors.background },

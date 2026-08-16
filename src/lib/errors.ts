@@ -26,9 +26,7 @@ export function pbErrorMessage(err: unknown, fallback = 'Une erreur est survenue
 
   if (err.status === 0) return 'Serveur injoignable. Vérifie ta connexion.';
 
-  // Jamais le message brut du serveur : « File not found. », « Failed to create
-  // record. » ne veulent rien dire pour l'utilisateur. Seul le détail par champ
-  // est exploitable, sinon c'est à l'appelant de dire ce qui a échoué.
+  // Jamais le message brut du serveur : illisible. Seul le détail par champ l'est.
   const [fieldError] = Object.values(pbFieldErrors(err));
   return fieldError ?? fallback;
 }

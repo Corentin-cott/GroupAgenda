@@ -11,11 +11,7 @@ interface DateTimeFieldProps {
   error?: string;
 }
 
-/**
- * Date et heure sont choisies séparément : c'est le seul enchaînement qui se
- * comporte pareil sur iOS et Android, le picker Android n'ayant pas de mode
- * combiné.
- */
+/** Date et heure séparées : le picker Android n'a pas de mode combiné. */
 export function DateTimeField({ label, value, onChange, error }: DateTimeFieldProps) {
   const { theme } = useTheme();
   const styles = useThemedStyles(createStyles);

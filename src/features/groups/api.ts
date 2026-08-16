@@ -69,10 +69,7 @@ export interface ActiveInvite {
   createdBy: string | null;
 }
 
-/**
- * Liens actifs d'un groupe, réservés à ses membres. `group_invites` n'étant
- * pas listable, seul le serveur peut restreindre les tokens à un groupe donné.
- */
+/** Liens actifs, réservés aux membres : `group_invites` n'étant pas listable, ça passe par le serveur. */
 export function listGroupInvites(groupId: string): Promise<ActiveInvite[]> {
   return pb.send<ActiveInvite[]>(`/api/groups/${encodeURIComponent(groupId)}/invites`, {
     method: 'GET',
@@ -107,11 +104,7 @@ function toInviteError(err: unknown): InviteError {
   return new InviteError('network');
 }
 
-/**
- * Aperçu accessible sans session. Passe par un endpoint dédié pour que
- * `group_invites` reste non listable : ouverte, elle laisserait n'importe quel
- * compte aspirer tous les tokens actifs.
- */
+/** Aperçu sans session. Endpoint dédié : `group_invites` listable laisserait aspirer tous les tokens. */
 export async function fetchInvitePreview(token: string): Promise<InvitePreview> {
   try {
     return await pb.send<InvitePreview>(`/api/invites/${encodeURIComponent(token)}`, {

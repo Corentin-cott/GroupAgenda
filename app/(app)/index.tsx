@@ -15,8 +15,7 @@ export default function GroupsScreen() {
   const styles = useThemedStyles(createStyles);
   const [memberships, setMemberships] = useState<GroupMemberRecord[]>([]);
 
-  // Au focus et non au montage : la liste doit se rafraîchir au retour d'une
-  // création de groupe ou d'une invitation acceptée.
+  // Au focus : la liste doit refléter un groupe créé ou une invitation acceptée.
   useFocusEffect(
     useCallback(() => {
       if (!user) return;

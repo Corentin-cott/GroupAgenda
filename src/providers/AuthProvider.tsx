@@ -26,8 +26,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     let active = true;
 
-    // L'authStore est la source de vérité : login, logout, refresh de token et
-    // invalidation par le SDK passent tous par onChange.
+    // L'authStore est la source de vérité : tout passe par onChange.
     const unsubscribe = pb.authStore.onChange((_token, record) => {
       if (!active) return;
       setState((prev) => ({ ...prev, user: (record as UserRecord | null) ?? null }));
@@ -38,8 +37,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
       if (pb.authStore.isValid) {
         try {
-          // Le token peut être signé et périmé côté serveur : compte supprimé,
-          // secret régénéré. authRefresh valide et prolonge.
+          // Le token peut être périmé côté serveur : authRefresh valide et prolonge.
           await pb.collection('users').authRefresh({ requestKey: 'auth_refresh' });
         } catch {
           pb.authStore.clear();
