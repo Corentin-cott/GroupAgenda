@@ -9,9 +9,9 @@ services:
     container_name: groupagenda-web
     restart: unless-stopped
 
-    # Exposé sur la boucle locale uniquement : c'est le reverse proxy du VPS qui termine le TLS et publie le service.
+    # Pas de 127.0.0.1 : le reverse proxy est un conteneur, sa boucle locale n'est pas celle de l'hôte.
     ports:
-      - "127.0.0.1:8093:80"
+      - "8093:80"
 
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost/healthz"]
