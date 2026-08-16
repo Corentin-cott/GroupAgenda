@@ -11,7 +11,7 @@ services:
 
     # Exposé sur la boucle locale uniquement : c'est le reverse proxy du VPS qui termine le TLS et publie le service.
     ports:
-      - "127.0.0.1:8092:80"
+      - "127.0.0.1:8093:80"
 
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost/healthz"]
