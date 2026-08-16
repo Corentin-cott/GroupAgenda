@@ -4,7 +4,7 @@ import { Card } from '@/components/Card';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { Screen } from '@/components/Screen';
 import { useGroupEvents } from '@/hooks/useGroupEvents';
-import { useGroupRsvpCounts } from '@/hooks/useGroupRsvpCounts';
+import { useGroupRsvpSummary } from '@/hooks/useGroupRsvpSummary';
 import { formatEventDate } from '@/lib/date';
 import { useThemedStyles } from '@/theme/ThemeProvider';
 import type { Theme } from '@/theme/tokens';
@@ -12,7 +12,7 @@ import type { Theme } from '@/theme/tokens';
 export default function GroupAgendaScreen() {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const { events, isLoading, error, refresh } = useGroupEvents(groupId);
-  const rsvpCounts = useGroupRsvpCounts(groupId);
+  const rsvpSummary = useGroupRsvpSummary(groupId);
   const styles = useThemedStyles(createStyles);
 
   const screenOptions = {
@@ -48,10 +48,17 @@ export default function GroupAgendaScreen() {
         refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} />}
         ListEmptyComponent={<Text style={styles.empty}>Aucun événement pour l'instant.</Text>}
         renderItem={({ item }) => {
-          const count = rsvpCounts[item.id] ?? 0;
+          const { count, attending } = rsvpSummary[item.id] ?? { count: 0, attending: false };
           return (
             <Card onPress={() => router.push(`/group/${groupId}/event/${item.id}`)}>
-              <Text style={styles.title}>{item.title}</Text>
+              <View style={styles.row}>
+                <Text style={styles.title}>{item.title}</Text>
+                {attending && (
+                  <View style={styles.check} accessibilityLabel="Tu es inscrit à cet événement">
+                    <Text style={styles.checkMark}>✓</Text>
+                  </View>
+                )}
+              </View>
               <Text style={styles.meta}>{formatEventDate(item.start_date)}</Text>
               {item.type === 'rsvp' && (
                 <View style={styles.badge}>
@@ -78,7 +85,22 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     headerAction: { ...theme.text.body, color: theme.colors.accent },
     list: { gap: theme.space.sm },
-    title: theme.text.heading,
+    row: { flexDirection: 'row', alignItems: 'flex-start', gap: theme.space.sm },
+    title: { ...theme.text.heading, flex: 1 },
+    check: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.colors.accent,
+    },
+    checkMark: {
+      fontFamily: theme.text.body.fontFamily,
+      fontSize: 13,
+      fontWeight: '700',
+      color: theme.colors.onAccent,
+    },
     meta: theme.text.meta,
     badge: {
       alignSelf: 'flex-start',
