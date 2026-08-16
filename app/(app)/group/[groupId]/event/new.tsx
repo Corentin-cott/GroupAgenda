@@ -4,11 +4,13 @@ import { Screen } from '@/components/Screen';
 import { EventForm } from '@/features/events/EventForm';
 import { createEvent } from '@/features/events/api';
 import { useAuth } from '@/providers/AuthProvider';
-import { colors } from '@/theme/colors';
+import { useThemedStyles } from '@/theme/ThemeProvider';
+import type { Theme } from '@/theme/tokens';
 
 export default function NewEventScreen() {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const { user } = useAuth();
+  const styles = useThemedStyles(createStyles);
 
   if (!groupId || !user) return null;
 
@@ -30,6 +32,7 @@ export default function NewEventScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  title: { fontSize: 26, fontWeight: '600', color: colors.text },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    title: theme.text.title,
+  });

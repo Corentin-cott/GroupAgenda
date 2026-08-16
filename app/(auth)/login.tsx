@@ -6,11 +6,14 @@ import { PrimaryButton } from '@/components/PrimaryButton';
 import { Screen } from '@/components/Screen';
 import { TextField } from '@/components/TextField';
 import { useAuth } from '@/providers/AuthProvider';
-import { colors } from '@/theme/colors';
+import { useThemedStyles } from '@/theme/ThemeProvider';
+import type { Theme } from '@/theme/tokens';
 
 export default function LoginScreen() {
   const { signIn } = useAuth();
   const { redirect } = useLocalSearchParams<{ redirect?: string }>();
+  const styles = useThemedStyles(createStyles);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +34,8 @@ export default function LoginScreen() {
 
   return (
     <Screen centered maxWidth={420}>
-      <Text style={styles.title}>Connexion</Text>
+      <Text style={styles.title}>Bon retour</Text>
+      <Text style={styles.subtitle}>Retrouve les agendas de tes groupes.</Text>
 
       <TextField
         label="Email"
@@ -67,8 +71,15 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  title: { fontSize: 28, fontWeight: '600', color: colors.text, marginBottom: 4 },
-  error: { color: colors.danger },
-  link: { color: colors.accent, textAlign: 'center', paddingVertical: 8 },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    title: theme.text.title,
+    subtitle: { ...theme.text.meta, marginBottom: theme.space.sm },
+    error: { ...theme.text.meta, color: theme.colors.danger },
+    link: {
+      ...theme.text.body,
+      color: theme.colors.accent,
+      textAlign: 'center',
+      paddingVertical: theme.space.sm,
+    },
+  });

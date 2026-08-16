@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { fromLocalInputValue, toLocalInputValue } from '@/lib/date';
-import { colors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeProvider';
+import type { Theme } from '@/theme/tokens';
 
 interface DateTimeFieldProps {
   label: string;
@@ -11,6 +12,9 @@ interface DateTimeFieldProps {
 
 /** Le navigateur fournit un sélecteur natif ; Metro charge la variante mobile sur iOS/Android. */
 export function DateTimeField({ label, value, onChange, error }: DateTimeFieldProps) {
+  const { theme } = useTheme();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <View style={styles.wrapper}>
       <Text style={styles.label}>{label}</Text>
@@ -24,15 +28,16 @@ export function DateTimeField({ label, value, onChange, error }: DateTimeFieldPr
         style={{
           width: '100%',
           boxSizing: 'border-box',
-          padding: 12,
-          fontSize: 16,
-          fontFamily: 'inherit',
-          color: colors.text,
-          backgroundColor: 'transparent',
-          borderWidth: 1,
+          padding: theme.space.md,
+          fontSize: theme.text.body.fontSize,
+          fontFamily: theme.text.body.fontFamily,
+          color: theme.colors.text,
+          backgroundColor: theme.colors.surface,
+          colorScheme: theme.scheme,
+          borderWidth: Math.max(theme.borderWidth, 1),
           borderStyle: 'solid',
-          borderColor: error ? colors.danger : colors.border,
-          borderRadius: 8,
+          borderColor: error ? theme.colors.danger : theme.colors.border,
+          borderRadius: theme.radius.md,
         }}
       />
       {!!error && <Text style={styles.error}>{error}</Text>}
@@ -40,8 +45,9 @@ export function DateTimeField({ label, value, onChange, error }: DateTimeFieldPr
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: { gap: 6 },
-  label: { fontSize: 13, color: colors.muted },
-  error: { color: colors.danger, fontSize: 13 },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    wrapper: { gap: theme.space.xs + 2 },
+    label: theme.text.label,
+    error: { ...theme.text.label, color: theme.colors.danger },
+  });

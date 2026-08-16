@@ -7,7 +7,8 @@ import { Screen } from '@/components/Screen';
 import { TextField } from '@/components/TextField';
 import { pbErrorMessage, pbFieldErrors } from '@/lib/errors';
 import { useAuth } from '@/providers/AuthProvider';
-import { colors } from '@/theme/colors';
+import { useThemedStyles } from '@/theme/ThemeProvider';
+import type { Theme } from '@/theme/tokens';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -21,6 +22,7 @@ const FIELD_MESSAGES: Record<string, string> = {
 export default function RegisterScreen() {
   const { signUp } = useAuth();
   const { redirect } = useLocalSearchParams<{ redirect?: string }>();
+  const styles = useThemedStyles(createStyles);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -53,9 +55,7 @@ export default function RegisterScreen() {
       const translated = Object.fromEntries(
         Object.keys(fields).map((field) => [field, FIELD_MESSAGES[field] ?? fields[field]!]),
       );
-      setErrors(
-        Object.keys(translated).length > 0 ? translated : { form: pbErrorMessage(err) },
-      );
+      setErrors(Object.keys(translated).length > 0 ? translated : { form: pbErrorMessage(err) });
     } finally {
       setPending(false);
     }
@@ -64,6 +64,7 @@ export default function RegisterScreen() {
   return (
     <Screen centered maxWidth={420}>
       <Text style={styles.title}>Créer un compte</Text>
+      <Text style={styles.subtitle}>De quoi rejoindre les agendas de tes proches.</Text>
 
       <TextField
         label="Nom"
@@ -118,8 +119,15 @@ export default function RegisterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  title: { fontSize: 28, fontWeight: '600', color: colors.text, marginBottom: 4 },
-  error: { color: colors.danger },
-  link: { color: colors.accent, textAlign: 'center', paddingVertical: 8 },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    title: theme.text.title,
+    subtitle: { ...theme.text.meta, marginBottom: theme.space.sm },
+    error: { ...theme.text.meta, color: theme.colors.danger },
+    link: {
+      ...theme.text.body,
+      color: theme.colors.accent,
+      textAlign: 'center',
+      paddingVertical: theme.space.sm,
+    },
+  });

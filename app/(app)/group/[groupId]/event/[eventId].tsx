@@ -10,7 +10,8 @@ import { confirmAction } from '@/lib/confirm';
 import { formatEventDate, parsePbDate } from '@/lib/date';
 import { pbErrorMessage } from '@/lib/errors';
 import { useAuth } from '@/providers/AuthProvider';
-import { colors } from '@/theme/colors';
+import { useThemedStyles } from '@/theme/ThemeProvider';
+import type { Theme } from '@/theme/tokens';
 import type { EventRecord, RsvpRecord, UserRecord } from '@/types/pocketbase';
 
 function participantLabel(rsvp: RsvpRecord, currentUser: UserRecord | null): string {
@@ -25,6 +26,7 @@ function participantLabel(rsvp: RsvpRecord, currentUser: UserRecord | null): str
 export default function EventDetailScreen() {
   const { groupId, eventId } = useLocalSearchParams<{ groupId: string; eventId: string }>();
   const { user } = useAuth();
+  const styles = useThemedStyles(createStyles);
 
   const [event, setEvent] = useState<EventRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -127,6 +129,7 @@ export default function EventDetailScreen() {
         <View style={styles.section}>
           <PrimaryButton
             label={isAttending ? 'Je ne viens plus' : 'Je viens'}
+            variant={isAttending ? 'outline' : 'solid'}
             onPress={toggle}
             pending={isPending}
           />
@@ -160,21 +163,27 @@ export default function EventDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  title: { fontSize: 26, fontWeight: '600', color: colors.text },
-  date: { fontSize: 16, color: colors.text, marginTop: 8 },
-  meta: { color: colors.muted, marginTop: 4 },
-  section: {
-    gap: 10,
-    marginTop: 28,
-    paddingTop: 20,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.separator,
-  },
-  sectionTitle: { fontSize: 15, fontWeight: '600', color: colors.text, marginTop: 8 },
-  participant: { color: colors.text },
-  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 24, marginTop: 32 },
-  action: { color: colors.accent, fontSize: 15 },
-  danger: { color: colors.danger },
-  error: { color: colors.danger, textAlign: 'center', marginTop: 16 },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    title: theme.text.title,
+    date: { ...theme.text.body, marginTop: theme.space.sm },
+    meta: { ...theme.text.meta, marginTop: theme.space.xs },
+    section: {
+      gap: theme.space.sm,
+      marginTop: theme.space.xl,
+      paddingTop: theme.space.lg,
+      borderTopWidth: Math.max(theme.borderWidth, 1),
+      borderColor: theme.colors.separator,
+    },
+    sectionTitle: { ...theme.text.heading, marginTop: theme.space.sm },
+    participant: theme.text.body,
+    actions: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: theme.space.lg,
+      marginTop: theme.space.xl,
+    },
+    action: { ...theme.text.body, color: theme.colors.accent },
+    danger: { color: theme.colors.danger },
+    error: { ...theme.text.body, color: theme.colors.danger, textAlign: 'center' },
+  });

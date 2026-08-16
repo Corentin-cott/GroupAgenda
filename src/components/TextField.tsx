@@ -1,6 +1,7 @@
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import type { TextInputProps } from 'react-native';
-import { colors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeProvider';
+import type { Theme } from '@/theme/tokens';
 
 interface TextFieldProps extends TextInputProps {
   label: string;
@@ -8,12 +9,15 @@ interface TextFieldProps extends TextInputProps {
 }
 
 export function TextField({ label, error, style, ...props }: TextFieldProps) {
+  const { theme } = useTheme();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <View style={styles.wrapper}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
         style={[styles.input, !!error && styles.inputError, style]}
-        placeholderTextColor={colors.placeholder}
+        placeholderTextColor={theme.colors.placeholder}
         {...props}
       />
       {!!error && <Text style={styles.error}>{error}</Text>}
@@ -21,17 +25,19 @@ export function TextField({ label, error, style, ...props }: TextFieldProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: { gap: 6 },
-  label: { fontSize: 13, color: colors.muted },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: colors.text,
-  },
-  inputError: { borderColor: colors.danger },
-  error: { color: colors.danger, fontSize: 13 },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    wrapper: { gap: theme.space.xs + 2 },
+    label: theme.text.label,
+    input: {
+      ...theme.text.body,
+      borderWidth: Math.max(theme.borderWidth, 1),
+      borderColor: theme.colors.border,
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.radius.md,
+      paddingHorizontal: theme.space.md,
+      paddingVertical: theme.space.md,
+    },
+    inputError: { borderColor: theme.colors.danger },
+    error: { ...theme.text.label, color: theme.colors.danger },
+  });

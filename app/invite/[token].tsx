@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
+import { PrimaryButton } from '@/components/PrimaryButton';
 import { Screen } from '@/components/Screen';
-import { useAuth } from '@/providers/AuthProvider';
-import { parsePbDate } from '@/lib/date';
 import {
   InviteError,
   acceptInvite,
   fetchInvitePreview,
   type InvitePreview,
 } from '@/features/groups/api';
+import { parsePbDate } from '@/lib/date';
+import { useAuth } from '@/providers/AuthProvider';
+import { useThemedStyles } from '@/theme/ThemeProvider';
+import type { Theme } from '@/theme/tokens';
 
 type Status = 'loading' | 'ready' | 'joining' | 'failed';
 
@@ -22,6 +25,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 export default function InviteScreen() {
   const { token } = useLocalSearchParams<{ token: string }>();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const styles = useThemedStyles(createStyles);
 
   const [preview, setPreview] = useState<InvitePreview | null>(null);
   const [status, setStatus] = useState<Status>('loading');
@@ -77,9 +81,9 @@ export default function InviteScreen() {
     return (
       <Screen centered maxWidth={420}>
         <Text style={styles.error}>{ERROR_MESSAGES[errorReason] ?? ERROR_MESSAGES.network}</Text>
-        <Pressable style={styles.secondary} onPress={() => router.replace('/')} hitSlop={8}>
-          <Text style={styles.secondaryLabel}>Retour à l'accueil</Text>
-        </Pressable>
+        <Text style={styles.link} onPress={() => router.replace('/')}>
+          Retour à l'accueil
+        </Text>
       </Screen>
     );
   }
@@ -107,42 +111,31 @@ export default function InviteScreen() {
         <Text style={styles.meta}>Valable jusqu'au {expiresAt.toLocaleDateString()}</Text>
       )}
 
-      <Pressable
-        style={[styles.primary, status === 'joining' && styles.primaryDisabled]}
-        disabled={status === 'joining'}
-        onPress={isMember ? () => router.replace(`/group/${preview.groupId}`) : onJoin}
-      >
-        {status === 'joining' ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.primaryLabel}>
-            {isMember ? "Ouvrir l'agenda" : 'Rejoindre le groupe'}
-          </Text>
-        )}
-      </Pressable>
+      <View style={styles.action}>
+        <PrimaryButton
+          label={isMember ? "Ouvrir l'agenda" : 'Rejoindre le groupe'}
+          pending={status === 'joining'}
+          onPress={isMember ? () => router.replace(`/group/${preview.groupId}`) : onJoin}
+        />
+      </View>
 
       {isMember && <Text style={styles.meta}>Tu fais déjà partie de ce groupe.</Text>}
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  card: { alignItems: 'center' },
-  eyebrow: { textTransform: 'uppercase', letterSpacing: 1, fontSize: 12, color: '#888' },
-  title: { fontSize: 26, fontWeight: '600', textAlign: 'center' },
-  meta: { color: '#666', textAlign: 'center' },
-  primary: {
-    marginTop: 16,
-    minHeight: 48,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 10,
-    backgroundColor: '#2563eb',
-  },
-  primaryDisabled: { opacity: 0.6 },
-  primaryLabel: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  secondary: { marginTop: 12, padding: 12 },
-  secondaryLabel: { color: '#2563eb' },
-  error: { color: '#c0392b', textAlign: 'center', lineHeight: 20 },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    card: { alignItems: 'center' },
+    eyebrow: {
+      ...theme.text.label,
+      textTransform: 'uppercase',
+      letterSpacing: 1.2,
+      color: theme.colors.accent,
+    },
+    title: { ...theme.text.title, textAlign: 'center' },
+    meta: { ...theme.text.meta, textAlign: 'center' },
+    action: { width: '100%', marginTop: theme.space.md },
+    link: { ...theme.text.body, color: theme.colors.accent, textAlign: 'center' },
+    error: { ...theme.text.body, color: theme.colors.danger, textAlign: 'center' },
+  });

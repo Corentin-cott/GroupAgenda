@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { colors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeProvider';
+import type { Theme } from '@/theme/tokens';
 
 interface DateTimeFieldProps {
   label: string;
@@ -16,6 +17,8 @@ interface DateTimeFieldProps {
  * combiné.
  */
 export function DateTimeField({ label, value, onChange, error }: DateTimeFieldProps) {
+  const { theme } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const [mode, setMode] = useState<'date' | 'time' | null>(null);
 
   const handleChange = (selected: Date | undefined) => {
@@ -58,6 +61,7 @@ export function DateTimeField({ label, value, onChange, error }: DateTimeFieldPr
           value={value}
           mode={mode}
           is24Hour
+          themeVariant={theme.scheme}
           onChange={(_event, selected) => handleChange(selected)}
         />
       )}
@@ -67,18 +71,20 @@ export function DateTimeField({ label, value, onChange, error }: DateTimeFieldPr
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: { gap: 6 },
-  label: { fontSize: 13, color: colors.muted },
-  row: { flexDirection: 'row', gap: 12 },
-  button: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    padding: 12,
-  },
-  buttonError: { borderColor: colors.danger },
-  value: { fontSize: 16, color: colors.text },
-  error: { color: colors.danger, fontSize: 13 },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    wrapper: { gap: theme.space.xs + 2 },
+    label: theme.text.label,
+    row: { flexDirection: 'row', gap: theme.space.sm },
+    button: {
+      flex: 1,
+      borderWidth: Math.max(theme.borderWidth, 1),
+      borderColor: theme.colors.border,
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.radius.md,
+      padding: theme.space.md,
+    },
+    buttonError: { borderColor: theme.colors.danger },
+    value: theme.text.body,
+    error: { ...theme.text.label, color: theme.colors.danger },
+  });

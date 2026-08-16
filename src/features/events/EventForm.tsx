@@ -6,7 +6,8 @@ import { SegmentedField } from '@/components/SegmentedField';
 import { TextField } from '@/components/TextField';
 import { nextRoundHour } from '@/lib/date';
 import { pbErrorMessage } from '@/lib/errors';
-import { colors } from '@/theme/colors';
+import { useThemedStyles } from '@/theme/ThemeProvider';
+import type { Theme } from '@/theme/tokens';
 import type { EventType } from '@/types/pocketbase';
 import type { EventInput } from './api';
 
@@ -19,10 +20,12 @@ interface EventFormProps {
 
 const TYPE_OPTIONS: { value: EventType; label: string; hint: string }[] = [
   { value: 'standard', label: 'Simple', hint: 'Visible par tout le groupe, sans inscription.' },
-  { value: 'rsvp', label: 'Sur inscription', hint: 'Chacun indique s\'il vient.' },
+  { value: 'rsvp', label: 'Sur inscription', hint: "Chacun indique s'il vient." },
 ];
 
 export function EventForm({ initial, submitLabel, onSubmit, onCancel }: EventFormProps) {
+  const styles = useThemedStyles(createStyles);
+
   const [title, setTitle] = useState(initial?.title ?? '');
   const [startDate, setStartDate] = useState(initial?.startDate ?? nextRoundHour());
   const [type, setType] = useState<EventType>(initial?.type ?? 'standard');
@@ -74,8 +77,9 @@ export function EventForm({ initial, submitLabel, onSubmit, onCancel }: EventFor
   );
 }
 
-const styles = StyleSheet.create({
-  form: { gap: 16 },
-  error: { color: colors.danger },
-  cancel: { color: colors.muted, textAlign: 'center', paddingVertical: 8 },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    form: { gap: theme.space.md + 2 },
+    error: { ...theme.text.meta, color: theme.colors.danger },
+    cancel: { ...theme.text.meta, textAlign: 'center', paddingVertical: theme.space.sm },
+  });

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
+import { Card } from '@/components/Card';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { Screen } from '@/components/Screen';
 import {
@@ -16,11 +17,13 @@ import { parsePbDate } from '@/lib/date';
 import { pbErrorMessage } from '@/lib/errors';
 import { copyToClipboard, shareLink } from '@/lib/share';
 import { useAuth } from '@/providers/AuthProvider';
-import { colors } from '@/theme/colors';
+import { useThemedStyles } from '@/theme/ThemeProvider';
+import type { Theme } from '@/theme/tokens';
 
 export default function GroupInviteScreen() {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const { user } = useAuth();
+  const styles = useThemedStyles(createStyles);
 
   const [groupName, setGroupName] = useState('');
   const [invites, setInvites] = useState<ActiveInvite[]>([]);
@@ -127,6 +130,7 @@ export default function GroupInviteScreen() {
       <FlatList
         data={invites}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
         ListHeaderComponent={
           <View style={styles.header}>
             <Text style={styles.hint}>
@@ -142,7 +146,7 @@ export default function GroupInviteScreen() {
         renderItem={({ item }) => {
           const expiresAt = parsePbDate(item.expires);
           return (
-            <View style={styles.row}>
+            <Card>
               <Text style={styles.url} numberOfLines={1} selectable>
                 {buildInviteUrl(item.token)}
               </Text>
@@ -160,7 +164,7 @@ export default function GroupInviteScreen() {
                   <Text style={[styles.action, styles.danger]}>Révoquer</Text>
                 </Pressable>
               </View>
-            </View>
+            </Card>
           );
         }}
       />
@@ -168,21 +172,22 @@ export default function GroupInviteScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  header: { gap: 12, paddingBottom: 20 },
-  hint: { color: colors.muted, lineHeight: 20 },
-  notice: { color: colors.accent },
-  error: { color: colors.danger },
-  row: {
-    gap: 4,
-    paddingVertical: 14,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.separator,
-  },
-  url: { fontSize: 14, color: colors.text },
-  meta: { color: colors.muted, fontSize: 13 },
-  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 20, marginTop: 6 },
-  action: { color: colors.accent, fontSize: 15 },
-  danger: { color: colors.danger },
-  empty: { textAlign: 'center', color: colors.muted, marginTop: 16 },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    list: { gap: theme.space.sm },
+    header: { gap: theme.space.md, paddingBottom: theme.space.lg },
+    hint: theme.text.meta,
+    notice: { ...theme.text.meta, color: theme.colors.accent },
+    error: { ...theme.text.meta, color: theme.colors.danger },
+    url: { ...theme.text.body, fontSize: (theme.text.meta.fontSize as number) + 1 },
+    meta: theme.text.meta,
+    actions: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: theme.space.lg,
+      marginTop: theme.space.sm,
+    },
+    action: { ...theme.text.body, color: theme.colors.accent },
+    danger: { color: theme.colors.danger },
+    empty: { ...theme.text.meta, textAlign: 'center' },
+  });

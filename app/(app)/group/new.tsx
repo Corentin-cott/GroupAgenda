@@ -6,9 +6,11 @@ import { Screen } from '@/components/Screen';
 import { TextField } from '@/components/TextField';
 import { createGroup } from '@/features/groups/api';
 import { pbErrorMessage } from '@/lib/errors';
-import { colors } from '@/theme/colors';
+import { useThemedStyles } from '@/theme/ThemeProvider';
+import type { Theme } from '@/theme/tokens';
 
 export default function NewGroupScreen() {
+  const styles = useThemedStyles(createStyles);
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -56,7 +58,8 @@ export default function NewGroupScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  title: { fontSize: 26, fontWeight: '600', color: colors.text },
-  hint: { color: colors.muted, marginBottom: 4 },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    title: theme.text.title,
+    hint: { ...theme.text.meta, marginBottom: theme.space.sm },
+  });

@@ -1,15 +1,18 @@
 import { useCallback, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text } from 'react-native';
-import { Link, Stack, router, useFocusEffect } from 'expo-router';
+import { Stack, router, useFocusEffect } from 'expo-router';
+import { Card } from '@/components/Card';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { Screen } from '@/components/Screen';
 import { pb } from '@/lib/pocketbase';
 import { useAuth } from '@/providers/AuthProvider';
-import { colors } from '@/theme/colors';
+import { useThemedStyles } from '@/theme/ThemeProvider';
+import type { Theme } from '@/theme/tokens';
 import type { GroupMemberRecord } from '@/types/pocketbase';
 
 export default function GroupsScreen() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
+  const styles = useThemedStyles(createStyles);
   const [memberships, setMemberships] = useState<GroupMemberRecord[]>([]);
 
   // Au focus et non au montage : la liste doit se rafraîchir au retour d'une
@@ -45,8 +48,8 @@ export default function GroupsScreen() {
         options={{
           title: 'Mes groupes',
           headerRight: () => (
-            <Pressable onPress={signOut} hitSlop={8}>
-              <Text style={styles.headerAction}>Déconnexion</Text>
+            <Pressable onPress={() => router.push('/settings')} hitSlop={8}>
+              <Text style={styles.headerAction}>Réglages</Text>
             </Pressable>
           ),
         }}
@@ -55,6 +58,7 @@ export default function GroupsScreen() {
       <FlatList
         data={memberships}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
         ListEmptyComponent={
           <Text style={styles.empty}>
             Aucun groupe pour l'instant. Crées-en un, ou ouvre le lien d'invitation qu'on t'a
@@ -62,9 +66,9 @@ export default function GroupsScreen() {
           </Text>
         }
         renderItem={({ item }) => (
-          <Link href={`/group/${item.group}`} style={styles.row}>
-            {item.expand?.group?.name ?? 'Groupe'}
-          </Link>
+          <Card onPress={() => router.push(`/group/${item.group}`)}>
+            <Text style={styles.groupName}>{item.expand?.group?.name ?? 'Groupe'}</Text>
+          </Card>
         )}
       />
 
@@ -77,15 +81,11 @@ export default function GroupsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  headerAction: { color: colors.accent },
-  row: {
-    paddingVertical: 14,
-    fontSize: 16,
-    color: colors.text,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.separator,
-  },
-  empty: { textAlign: 'center', marginTop: 32, color: colors.muted, lineHeight: 20 },
-  cta: { marginTop: 12 },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    headerAction: { ...theme.text.body, color: theme.colors.accent },
+    list: { gap: theme.space.sm },
+    groupName: theme.text.heading,
+    empty: { ...theme.text.meta, textAlign: 'center', marginTop: theme.space.xl },
+    cta: { marginTop: theme.space.md },
+  });
