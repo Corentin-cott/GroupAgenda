@@ -1,9 +1,11 @@
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text } from 'react-native';
+import { FlatList, StyleSheet, Text } from 'react-native';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import { Card } from '@/components/Card';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { HeaderButton } from '@/components/HeaderButton';
 import { Screen } from '@/components/Screen';
+import { SettingsIcon } from '@/components/icons';
 import { pb } from '@/lib/pocketbase';
 import { useAuth } from '@/providers/AuthProvider';
 import { useThemedStyles } from '@/theme/ThemeProvider';
@@ -47,9 +49,9 @@ export default function GroupsScreen() {
         options={{
           title: 'Mes groupes',
           headerRight: () => (
-            <Pressable onPress={() => router.push('/settings')} hitSlop={8}>
-              <Text style={styles.headerAction}>Réglages</Text>
-            </Pressable>
+            <HeaderButton onPress={() => router.push('/settings')} accessibilityLabel="Réglages">
+              {(color) => <SettingsIcon color={color} />}
+            </HeaderButton>
           ),
         }}
       />
@@ -82,7 +84,6 @@ export default function GroupsScreen() {
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
-    headerAction: { ...theme.text.body, color: theme.colors.accent },
     list: { gap: theme.space.sm },
     groupName: theme.text.heading,
     empty: { ...theme.text.meta, textAlign: 'center', marginTop: theme.space.xl },

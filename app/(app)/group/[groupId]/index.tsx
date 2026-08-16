@@ -1,8 +1,10 @@
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
-import { Link, Stack, router, useLocalSearchParams } from 'expo-router';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Card } from '@/components/Card';
+import { HeaderButton } from '@/components/HeaderButton';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { Screen } from '@/components/Screen';
+import { UserPlusIcon } from '@/components/icons';
 import { useGroupEvents } from '@/hooks/useGroupEvents';
 import { useGroupRsvpSummary } from '@/hooks/useGroupRsvpSummary';
 import { formatEventDate } from '@/lib/date';
@@ -18,9 +20,12 @@ export default function GroupAgendaScreen() {
   const screenOptions = {
     title: 'Agenda',
     headerRight: () => (
-      <Link href={`/group/${groupId}/invite`} style={styles.headerAction}>
-        Inviter
-      </Link>
+      <HeaderButton
+        onPress={() => router.push(`/group/${groupId}/invite`)}
+        accessibilityLabel="Inviter quelqu'un dans le groupe"
+      >
+        {(color) => <UserPlusIcon color={color} />}
+      </HeaderButton>
     ),
   };
 
@@ -83,7 +88,6 @@ export default function GroupAgendaScreen() {
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
-    headerAction: { ...theme.text.body, color: theme.colors.accent },
     list: { gap: theme.space.sm },
     row: { flexDirection: 'row', alignItems: 'flex-start', gap: theme.space.sm },
     title: { ...theme.text.heading, flex: 1 },
