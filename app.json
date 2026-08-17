@@ -11,7 +11,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "fr.groupagenda.app",
       "associatedDomains": [
-        "applinks:agenda.mon-domaine.fr"
+        "applinks:groupagenda.antredesloutres.fr"
       ]
     },
     "android": {
@@ -24,7 +24,7 @@
           "data": [
             {
               "scheme": "https",
-              "host": "agenda.mon-domaine.fr"
+              "host": "groupagenda.antredesloutres.fr"
             }
           ],
           "category": [
