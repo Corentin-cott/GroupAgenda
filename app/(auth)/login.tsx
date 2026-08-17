@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
-import { Link, router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import type { Href } from 'expo-router';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { Screen } from '@/components/Screen';
@@ -60,13 +60,6 @@ export default function LoginScreen() {
       {!!error && <Text style={styles.error}>{error}</Text>}
 
       <PrimaryButton label="Se connecter" onPress={onSubmit} pending={pending} />
-
-      <Link
-        href={{ pathname: '/register', params: redirect ? { redirect } : undefined }}
-        style={styles.link}
-      >
-        Créer un compte
-      </Link>
     </Screen>
   );
 }
@@ -76,10 +69,4 @@ const createStyles = (theme: Theme) =>
     title: theme.text.title,
     subtitle: { ...theme.text.meta, marginBottom: theme.space.sm },
     error: { ...theme.text.meta, color: theme.colors.danger },
-    link: {
-      ...theme.text.body,
-      color: theme.colors.accent,
-      textAlign: 'center',
-      paddingVertical: theme.space.sm,
-    },
   });

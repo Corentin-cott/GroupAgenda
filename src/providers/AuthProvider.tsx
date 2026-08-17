@@ -12,7 +12,6 @@ interface AuthState {
 interface AuthContextValue extends AuthState {
   isAuthenticated: boolean;
   signIn(email: string, password: string): Promise<void>;
-  signUp(input: { email: string; password: string; name?: string }): Promise<void>;
   signOut(): void;
   /** Recharge le record courant (ex. après édition du profil). */
   reload(): Promise<void>;
@@ -58,20 +57,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
     await pb.collection('users').authWithPassword(email.trim(), password);
   }, []);
 
-  const signUp = useCallback(
-    async ({ email, password, name }: { email: string; password: string; name?: string }) => {
-      const cleanEmail = email.trim();
-      await pb.collection('users').create({
-        email: cleanEmail,
-        password,
-        passwordConfirm: password,
-        name: name?.trim() || cleanEmail.split('@')[0],
-      });
-      await pb.collection('users').authWithPassword(cleanEmail, password);
-    },
-    [],
-  );
-
   const signOut = useCallback(() => {
     // Coupe aussi les abonnements SSE ouverts avec l'ancien token.
     void pb.realtime.unsubscribe();
@@ -88,11 +73,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
       ...state,
       isAuthenticated: state.user !== null,
       signIn,
-      signUp,
       signOut,
       reload,
     }),
-    [state, signIn, signUp, signOut, reload],
+    [state, signIn, signOut, reload],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
