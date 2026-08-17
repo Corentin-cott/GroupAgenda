@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { FlatList, StyleSheet, Text } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import { Card } from '@/components/Card';
 import { PrimaryButton } from '@/components/PrimaryButton';
@@ -56,6 +56,12 @@ export default function GroupsScreen() {
         }}
       />
 
+      <Card onPress={() => router.push('/agenda')}>
+        <Text style={styles.agendaTitle}>Mon agenda</Text>
+      </Card>
+
+      <View style={styles.separator} />
+
       <FlatList
         data={memberships}
         keyExtractor={(item) => item.id}
@@ -84,6 +90,12 @@ export default function GroupsScreen() {
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
+    agendaTitle: theme.text.heading,
+    separator: {
+      height: Math.max(theme.borderWidth, 1),
+      backgroundColor: theme.colors.separator,
+      marginVertical: theme.space.lg,
+    },
     list: { gap: theme.space.sm },
     groupName: theme.text.heading,
     empty: { ...theme.text.meta, textAlign: 'center', marginTop: theme.space.xl },

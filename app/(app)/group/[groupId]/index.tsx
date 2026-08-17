@@ -17,6 +17,8 @@ import { Screen } from '@/components/Screen';
 import { SegmentedField } from '@/components/SegmentedField';
 import { WeekCalendar } from '@/components/WeekCalendar';
 import { UserPlusIcon, UsersIcon } from '@/components/icons';
+import { buildDaySections } from '@/features/agenda/sections';
+import type { AgendaEntry } from '@/features/agenda/types';
 import { EventCard } from '@/features/events/EventCard';
 import { useGroupEvents } from '@/hooks/useGroupEvents';
 import { useGroupRsvpSummary } from '@/hooks/useGroupRsvpSummary';
@@ -42,35 +44,6 @@ const VIEW_OPTIONS: { value: ViewMode; label: string }[] = [
 
 const VIEW_MODES: readonly ViewMode[] = ['list', 'month', 'week'];
 
-interface DaySection {
-  key: string;
-  title: string;
-  past: boolean;
-  data: EventRecord[];
-}
-
-function buildSections(events: EventRecord[], includePast: boolean) {
-  const today = startOfDay(new Date()).getTime();
-  const sections: DaySection[] = [];
-  let pastCount = 0;
-
-  for (const event of events) {
-    const date = parsePbDate(event.start_date);
-    if (!date) continue;
-
-    const past = startOfDay(date).getTime() < today;
-    if (past) pastCount += 1;
-    if (past && !includePast) continue;
-
-    const key = dayKey(date);
-    const last = sections[sections.length - 1];
-    if (last?.key === key) last.data.push(event);
-    else sections.push({ key, title: formatDayLabel(date), past, data: [event] });
-  }
-
-  return { sections, pastCount };
-}
-
 export default function GroupAgendaScreen() {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const { events, isLoading, error, refresh } = useGroupEvents(groupId);
@@ -83,7 +56,7 @@ export default function GroupAgendaScreen() {
   const [selectedDay, setSelectedDay] = useState(() => startOfDay(new Date()));
 
   const { sections, pastCount } = useMemo(
-    () => buildSections(events, showPast),
+    () => buildDaySections(events, (event) => event.start_date, showPast),
     [events, showPast],
   );
 
@@ -98,15 +71,26 @@ export default function GroupAgendaScreen() {
     return map;
   }, [events]);
 
-  const attendingIds = useMemo(
-    () =>
-      new Set(
-        Object.entries(rsvpSummary)
-          .filter(([, summary]) => summary.attending)
-          .map(([eventId]) => eventId),
-      ),
-    [rsvpSummary],
-  );
+  // La vue semaine est partagée avec les agendas personnels : elle parle `AgendaEntry`.
+  const weekEntriesByDay = useMemo(() => {
+    const map = new Map<string, AgendaEntry[]>();
+    for (const [key, dayEvents] of eventsByDay) {
+      map.set(
+        key,
+        dayEvents.map((event) => ({
+          id: event.id,
+          title: event.title,
+          start: event.start_date,
+          source: 'group' as const,
+          visible: true,
+          type: event.type,
+          groupId: event.group,
+          attending: rsvpSummary[event.id]?.attending,
+        })),
+      );
+    }
+    return map;
+  }, [eventsByDay, rsvpSummary]);
 
   const openEvent = (event: EventRecord) => router.push(`/group/${groupId}/event/${event.id}`);
 
@@ -222,9 +206,8 @@ export default function GroupAgendaScreen() {
         <WeekCalendar
           weekStart={startOfWeek(anchor)}
           onWeekChange={setAnchor}
-          eventsByDay={eventsByDay}
-          attendingIds={attendingIds}
-          onSelectEvent={openEvent}
+          entriesByDay={weekEntriesByDay}
+          onSelectEntry={(entry) => router.push(`/group/${groupId}/event/${entry.id}`)}
           onRefresh={refresh}
         />
       )}

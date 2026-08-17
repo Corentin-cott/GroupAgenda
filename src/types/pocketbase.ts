@@ -54,8 +54,15 @@ export interface GroupInviteRecord extends BaseRecord {
   expand?: { group?: GroupRecord; created_by?: UserRecord };
 }
 
+export interface PersonalEventRecord extends BaseRecord {
+  owner: string;
+  title: string;
+  start_date: string;
+}
+
 export interface Schema {
   users: UserRecord;
+  personal_events: PersonalEventRecord;
   groups: GroupRecord;
   group_members: GroupMemberRecord;
   events: EventRecord;

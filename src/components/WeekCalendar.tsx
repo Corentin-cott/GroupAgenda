@@ -1,16 +1,15 @@
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import type { AgendaEntry } from '@/features/agenda/types';
 import { addDays, dayKey, formatTime, parsePbDate } from '@/lib/date';
 import { useTheme, useThemedStyles } from '@/theme/ThemeProvider';
 import type { Theme } from '@/theme/tokens';
-import type { EventRecord } from '@/types/pocketbase';
 import { ChevronLeftIcon, ChevronRightIcon } from './icons';
 
 interface WeekCalendarProps {
   weekStart: Date;
   onWeekChange: (weekStart: Date) => void;
-  eventsByDay: Map<string, EventRecord[]>;
-  attendingIds: Set<string>;
-  onSelectEvent: (event: EventRecord) => void;
+  entriesByDay: Map<string, AgendaEntry[]>;
+  onSelectEntry: (entry: AgendaEntry) => void;
   onRefresh?: () => void;
 }
 
@@ -18,9 +17,8 @@ interface WeekCalendarProps {
 export function WeekCalendar({
   weekStart,
   onWeekChange,
-  eventsByDay,
-  attendingIds,
-  onSelectEvent,
+  entriesByDay,
+  onSelectEntry,
   onRefresh,
 }: WeekCalendarProps) {
   const { theme } = useTheme();
@@ -64,39 +62,42 @@ export function WeekCalendar({
       >
         {days.map((day) => {
           const key = dayKey(day);
-          const dayEvents = eventsByDay.get(key) ?? [];
+          const dayEntries = entriesByDay.get(key) ?? [];
           const isToday = key === todayKey;
 
           return (
-          <View key={key} style={[styles.day, isToday && styles.dayToday]}>
-            <View style={styles.dayHead}>
-              <Text style={[styles.dayName, isToday && styles.todayText]}>
-                {day.toLocaleDateString(undefined, { weekday: 'short' })}
-              </Text>
-              <Text style={[styles.dayNumber, isToday && styles.todayText]}>{day.getDate()}</Text>
-            </View>
+            <View key={key} style={[styles.day, isToday && styles.dayToday]}>
+              <View style={styles.dayHead}>
+                <Text style={[styles.dayName, isToday && styles.todayText]}>
+                  {day.toLocaleDateString(undefined, { weekday: 'short' })}
+                </Text>
+                <Text style={[styles.dayNumber, isToday && styles.todayText]}>{day.getDate()}</Text>
+              </View>
 
-            <View style={styles.dayEvents}>
-              {dayEvents.length === 0 ? (
-                <Text style={styles.emptyDay}>—</Text>
-              ) : (
-                dayEvents.map((event) => {
-                  const date = parsePbDate(event.start_date);
-                  return (
-                    <Pressable
-                      key={event.id}
-                      style={styles.chip}
-                      onPress={() => onSelectEvent(event)}
-                    >
-                      <Text style={styles.chipTime}>{date ? formatTime(date) : '—'}</Text>
-                      <Text style={styles.chipTitle} numberOfLines={2}>
-                        {event.title}
-                      </Text>
-                      {attendingIds.has(event.id) && <Text style={styles.chipCheck}>✓</Text>}
-                    </Pressable>
-                  );
-                })
-              )}
+              <View style={styles.dayEvents}>
+                {dayEntries.length === 0 ? (
+                  <Text style={styles.emptyDay}>—</Text>
+                ) : (
+                  dayEntries.map((entry) => {
+                    const date = parsePbDate(entry.start);
+                    return (
+                      <Pressable
+                        key={`${entry.source}-${entry.id}`}
+                        style={styles.chip}
+                        onPress={() => onSelectEntry(entry)}
+                      >
+                        <Text style={styles.chipTime}>{date ? formatTime(date) : '—'}</Text>
+                        <Text
+                          style={[styles.chipTitle, !entry.visible && styles.chipTitleHidden]}
+                          numberOfLines={2}
+                        >
+                          {entry.title}
+                        </Text>
+                        {entry.attending && <Text style={styles.chipCheck}>✓</Text>}
+                      </Pressable>
+                    );
+                  })
+                )}
               </View>
             </View>
           );
@@ -152,5 +153,6 @@ const createStyles = (theme: Theme) =>
     },
     chipTime: { ...theme.text.label, color: theme.colors.accent },
     chipTitle: { ...theme.text.meta, color: theme.colors.text, flex: 1 },
+    chipTitleHidden: { color: theme.colors.textMuted, fontStyle: 'italic' },
     chipCheck: { ...theme.text.label, color: theme.colors.accent, fontWeight: '700' },
   });

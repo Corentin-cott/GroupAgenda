@@ -1,40 +1,39 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { AttendingCheck } from '@/components/AttendingCheck';
 import { Card } from '@/components/Card';
-import type { EventRsvpSummary } from '@/hooks/useGroupRsvpSummary';
 import { formatTime, parsePbDate } from '@/lib/date';
 import { useThemedStyles } from '@/theme/ThemeProvider';
 import type { Theme } from '@/theme/tokens';
-import type { EventRecord } from '@/types/pocketbase';
+import type { AgendaEntry } from './types';
 
-interface EventCardProps {
-  event: EventRecord;
-  summary?: EventRsvpSummary;
-  onPress: () => void;
+interface AgendaEntryCardProps {
+  entry: AgendaEntry;
+  onPress?: () => void;
   dimmed?: boolean;
 }
 
-export function EventCard({ event, summary, onPress, dimmed }: EventCardProps) {
+function badgeLabel(entry: AgendaEntry): string {
+  if (!entry.visible) return 'Détails masqués';
+  if (entry.source === 'personal') return 'Personnel';
+  return entry.groupName ?? 'Groupe';
+}
+
+export function AgendaEntryCard({ entry, onPress, dimmed }: AgendaEntryCardProps) {
   const styles = useThemedStyles(createStyles);
-  const { count, attending } = summary ?? { count: 0, attending: false };
-  const date = parsePbDate(event.start_date);
+  const date = parsePbDate(entry.start);
 
   return (
     <Card onPress={onPress} style={dimmed ? styles.dimmed : undefined}>
       <View style={styles.row}>
-        <Text style={styles.title}>{event.title}</Text>
-        {attending && <AttendingCheck />}
+        <Text style={[styles.title, !entry.visible && styles.titleHidden]}>{entry.title}</Text>
+        {entry.attending && <AttendingCheck />}
       </View>
 
       <Text style={styles.meta}>{date ? formatTime(date) : 'Heure à définir'}</Text>
 
-      {event.type === 'rsvp' && (
-        <View style={styles.badge}>
-          <Text style={styles.badgeLabel}>
-            {count} inscrit{count > 1 ? 's' : ''}
-          </Text>
-        </View>
-      )}
+      <View style={styles.badge}>
+        <Text style={styles.badgeLabel}>{badgeLabel(entry)}</Text>
+      </View>
     </Card>
   );
 }
@@ -44,6 +43,7 @@ const createStyles = (theme: Theme) =>
     dimmed: { opacity: 0.6 },
     row: { flexDirection: 'row', alignItems: 'flex-start', gap: theme.space.sm },
     title: { ...theme.text.heading, flex: 1 },
+    titleHidden: { color: theme.colors.textMuted, fontStyle: 'italic' },
     meta: theme.text.meta,
     badge: {
       alignSelf: 'flex-start',

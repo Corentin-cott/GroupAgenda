@@ -6,12 +6,12 @@ import { Card } from '@/components/Card';
 import { HeaderButton } from '@/components/HeaderButton';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { Screen } from '@/components/Screen';
-import { UserPlusIcon } from '@/components/icons';
+import { ChevronRightIcon, UserPlusIcon } from '@/components/icons';
 import { getGroup, leaveGroup, listGroupMembers } from '@/features/groups/api';
 import { confirmAction } from '@/lib/confirm';
 import { pbErrorMessage } from '@/lib/errors';
 import { useAuth } from '@/providers/AuthProvider';
-import { useThemedStyles } from '@/theme/ThemeProvider';
+import { useTheme, useThemedStyles } from '@/theme/ThemeProvider';
 import type { Theme } from '@/theme/tokens';
 import type { GroupMemberRecord, UserRecord } from '@/types/pocketbase';
 
@@ -27,6 +27,7 @@ function memberLabel(member: GroupMemberRecord, currentUser: UserRecord | null):
 export default function GroupMembersScreen() {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const { user } = useAuth();
+  const { theme } = useTheme();
   const styles = useThemedStyles(createStyles);
 
   const [groupName, setGroupName] = useState('');
@@ -111,17 +112,33 @@ export default function GroupMembersScreen() {
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <Text style={styles.hint}>
-            {members.length} membre{members.length > 1 ? 's' : ''} · tous ont les mêmes droits sur
-            l'agenda.
+            {members.length} membre{members.length > 1 ? 's' : ''} · tous ont les mêmes droits.
+            Touche quelqu'un pour voir son agenda.
           </Text>
         }
         ListEmptyComponent={<Text style={styles.hint}>Aucun membre.</Text>}
-        renderItem={({ item }) => (
-          <Card style={styles.member}>
-            <Avatar user={item.expand?.user} size={40} />
-            <Text style={styles.name}>{memberLabel(item, user)}</Text>
-          </Card>
-        )}
+        renderItem={({ item }) => {
+          const isSelf = item.user === user?.id;
+          const displayName = item.expand?.user?.name || item.expand?.user?.email || 'Un membre';
+
+          return (
+            <Card
+              style={styles.member}
+              onPress={() =>
+                isSelf
+                  ? router.push('/agenda')
+                  : router.push({
+                      pathname: '/user/[userId]',
+                      params: { userId: item.user, name: displayName },
+                    })
+              }
+            >
+              <Avatar user={item.expand?.user} size={40} />
+              <Text style={styles.name}>{memberLabel(item, user)}</Text>
+              <ChevronRightIcon color={theme.colors.textMuted} size={20} />
+            </Card>
+          );
+        }}
       />
 
       {!!error && <Text style={styles.error}>{error}</Text>}
