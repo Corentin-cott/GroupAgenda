@@ -219,18 +219,14 @@ export default function GroupAgendaScreen() {
       )}
 
       {view === 'week' && (
-        <ScrollView
-          contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} />}
-        >
-          <WeekCalendar
-            weekStart={startOfWeek(anchor)}
-            onWeekChange={setAnchor}
-            eventsByDay={eventsByDay}
-            attendingIds={attendingIds}
-            onSelectEvent={openEvent}
-          />
-        </ScrollView>
+        <WeekCalendar
+          weekStart={startOfWeek(anchor)}
+          onWeekChange={setAnchor}
+          eventsByDay={eventsByDay}
+          attendingIds={attendingIds}
+          onSelectEvent={openEvent}
+          onRefresh={refresh}
+        />
       )}
 
       <PrimaryButton

@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { addDays, dayKey, formatTime, parsePbDate } from '@/lib/date';
 import { useTheme, useThemedStyles } from '@/theme/ThemeProvider';
 import type { Theme } from '@/theme/tokens';
@@ -11,15 +11,17 @@ interface WeekCalendarProps {
   eventsByDay: Map<string, EventRecord[]>;
   attendingIds: Set<string>;
   onSelectEvent: (event: EventRecord) => void;
+  onRefresh?: () => void;
 }
 
-/** Sept jours empilés : lisible sur téléphone sans défilement latéral. */
+/** Sept jours empilés, la navigation restant fixe au-dessus du défilement. */
 export function WeekCalendar({
   weekStart,
   onWeekChange,
   eventsByDay,
   attendingIds,
   onSelectEvent,
+  onRefresh,
 }: WeekCalendarProps) {
   const { theme } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -53,12 +55,19 @@ export function WeekCalendar({
         </Pressable>
       </View>
 
-      {days.map((day) => {
-        const key = dayKey(day);
-        const dayEvents = eventsByDay.get(key) ?? [];
-        const isToday = key === todayKey;
+      <ScrollView
+        style={styles.days}
+        contentContainerStyle={styles.daysContent}
+        refreshControl={
+          onRefresh ? <RefreshControl refreshing={false} onRefresh={onRefresh} /> : undefined
+        }
+      >
+        {days.map((day) => {
+          const key = dayKey(day);
+          const dayEvents = eventsByDay.get(key) ?? [];
+          const isToday = key === todayKey;
 
-        return (
+          return (
           <View key={key} style={[styles.day, isToday && styles.dayToday]}>
             <View style={styles.dayHead}>
               <Text style={[styles.dayName, isToday && styles.todayText]}>
@@ -88,10 +97,11 @@ export function WeekCalendar({
                   );
                 })
               )}
+              </View>
             </View>
-          </View>
-        );
-      })}
+          );
+        })}
+      </ScrollView>
     </View>
   );
 }
@@ -99,12 +109,15 @@ export function WeekCalendar({
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
     wrapper: {
+      flex: 1,
       backgroundColor: theme.colors.surface,
       borderWidth: Math.max(theme.borderWidth, 1),
       borderColor: theme.colors.border,
       borderRadius: theme.radius.md,
       padding: theme.space.sm,
     },
+    days: { flex: 1 },
+    daysContent: { paddingBottom: theme.space.xs },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
