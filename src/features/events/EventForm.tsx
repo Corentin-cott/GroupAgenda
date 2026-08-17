@@ -68,18 +68,13 @@ export function EventForm({ initial, submitLabel, onSubmit, onCancel }: EventFor
 
       <PrimaryButton label={submitLabel} onPress={submit} pending={pending} />
 
-      {onCancel && (
-        <Text style={styles.cancel} onPress={onCancel}>
-          Annuler
-        </Text>
-      )}
+      {onCancel && <PrimaryButton label="Annuler" variant="outline" onPress={onCancel} />}
     </View>
   );
 }
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
-    form: { gap: theme.space.md + 2 },
+    form: { gap: theme.space.md },
     error: { ...theme.text.meta, color: theme.colors.danger },
-    cancel: { ...theme.text.meta, textAlign: 'center', paddingVertical: theme.space.sm },
   });

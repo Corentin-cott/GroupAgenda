@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { Screen } from '@/components/Screen';
@@ -34,32 +34,34 @@ export default function NewGroupScreen() {
   };
 
   return (
-    <Screen centered maxWidth={420}>
+    <Screen scrollable maxWidth={520}>
       <Stack.Screen options={{ title: 'Nouveau groupe' }} />
 
-      <Text style={styles.title}>Nouveau groupe</Text>
-      <Text style={styles.hint}>
-        Tu en seras le premier membre. Tout le monde y aura les mêmes droits.
-      </Text>
+      <View style={styles.form}>
+        <Text style={styles.hint}>
+          Tu en seras le premier membre. Tout le monde y aura les mêmes droits.
+        </Text>
 
-      <TextField
-        label="Nom du groupe"
-        placeholder="Colocation, Famille Dupont, Rando…"
-        autoFocus
-        autoCapitalize="sentences"
-        value={name}
-        onChangeText={setName}
-        onSubmitEditing={onSubmit}
-        error={error ?? undefined}
-      />
+        <TextField
+          label="Nom du groupe"
+          placeholder="Colocation, Famille Dupont, Rando…"
+          autoFocus
+          autoCapitalize="sentences"
+          value={name}
+          onChangeText={setName}
+          onSubmitEditing={onSubmit}
+          error={error ?? undefined}
+        />
 
-      <PrimaryButton label="Créer le groupe" onPress={onSubmit} pending={pending} />
+        <PrimaryButton label="Créer le groupe" onPress={onSubmit} pending={pending} />
+        <PrimaryButton label="Annuler" variant="outline" onPress={() => router.back()} />
+      </View>
     </Screen>
   );
 }
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
-    title: theme.text.title,
-    hint: { ...theme.text.meta, marginBottom: theme.space.sm },
+    form: { gap: theme.space.md },
+    hint: theme.text.meta,
   });

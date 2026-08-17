@@ -84,7 +84,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <Screen>
+    <Screen scrollable maxWidth={520}>
       <Stack.Screen options={{ title: 'Profil' }} />
 
       <View style={styles.identity}>

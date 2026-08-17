@@ -100,9 +100,8 @@ export default function EventDetailScreen() {
 
   if (isEditing) {
     return (
-      <Screen centered maxWidth={480}>
-        <Stack.Screen options={{ title: 'Modifier' }} />
-        <Text style={styles.title}>Modifier l'événement</Text>
+      <Screen scrollable maxWidth={520}>
+        <Stack.Screen options={{ title: "Modifier l'événement" }} />
 
         <EventForm
           submitLabel="Enregistrer"
