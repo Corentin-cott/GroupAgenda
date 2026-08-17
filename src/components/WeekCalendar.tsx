@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
-import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import type { AgendaEntry } from '@/features/agenda/types';
+import { useCalendarPager } from '@/hooks/useCalendarPager';
 import { addDays, dayKey, formatTime, parsePbDate } from '@/lib/date';
 import { useTheme, useThemedStyles } from '@/theme/ThemeProvider';
 import type { Theme } from '@/theme/tokens';
@@ -26,31 +26,15 @@ export function WeekCalendar({
   const { theme } = useTheme();
   const styles = useThemedStyles(createStyles);
 
-  const pager = useRef<ScrollView>(null);
-  const [pageWidth, setPageWidth] = useState(0);
+  const { ref, size, recenter, pagerProps } = useCalendarPager((delta) =>
+    onWeekChange(addDays(weekStart, delta * 7)),
+  );
 
-  // Recentre après un changement de semaine, d'où qu'il vienne : balayage,
-  // chevrons, ou première mesure de largeur.
-  useEffect(() => {
-    if (pageWidth > 0) pager.current?.scrollTo({ x: pageWidth, animated: false });
-  }, [weekStart, pageWidth]);
+  useEffect(recenter, [weekStart, recenter]);
 
   const todayKey = dayKey(new Date());
   const weeks = [addDays(weekStart, -7), weekStart, addDays(weekStart, 7)];
   const last = addDays(weekStart, 6);
-
-  const syncWidth = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const width = event.nativeEvent.layoutMeasurement.width;
-    if (width > 0 && Math.abs(width - pageWidth) > 1) setPageWidth(width);
-  };
-
-  const onPageSettled = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const width = event.nativeEvent.layoutMeasurement.width || pageWidth;
-    if (width <= 0) return;
-
-    const page = Math.round(event.nativeEvent.contentOffset.x / width);
-    if (page !== 1) onWeekChange(addDays(weekStart, page === 0 ? -7 : 7));
-  };
 
   const renderDay = (day: Date) => {
     const key = dayKey(day);
@@ -121,19 +105,18 @@ export function WeekCalendar({
       </View>
 
       <ScrollView
-        ref={pager}
+        ref={ref}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        scrollEventThrottle={16}
-        onLayout={(event) => setPageWidth(event.nativeEvent.layout.width)}
-        onScroll={syncWidth}
-        onMomentumScrollEnd={onPageSettled}
         style={styles.pager}
+        {...pagerProps}
       >
         {weeks.map((start) => (
-          <View key={dayKey(start)} style={{ width: pageWidth }}>
+          // Hauteur explicite : sans elle le défilement vertical interne n'a plus de borne.
+          <View key={dayKey(start)} style={{ width: size.width, height: size.height }}>
             <ScrollView
+              style={styles.days}
               contentContainerStyle={styles.daysContent}
               refreshControl={
                 onRefresh ? <RefreshControl refreshing={false} onRefresh={onRefresh} /> : undefined
@@ -159,6 +142,7 @@ const createStyles = (theme: Theme) =>
       padding: theme.space.sm,
     },
     pager: { flex: 1 },
+    days: { flex: 1 },
     daysContent: { paddingBottom: theme.space.xs },
     header: {
       flexDirection: 'row',
