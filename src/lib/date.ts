@@ -32,6 +32,34 @@ export function nextRoundHour(): Date {
   return date;
 }
 
+export function startOfDay(date: Date): Date {
+  const copy = new Date(date);
+  copy.setHours(0, 0, 0, 0);
+  return copy;
+}
+
+/** Clé de regroupement stable en heure locale (`2026-08-17`). */
+export function dayKey(date: Date): string {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+export function formatDayLabel(date: Date): string {
+  const days = Math.round((startOfDay(date).getTime() - startOfDay(new Date()).getTime()) / 86400000);
+  if (days === 0) return "Aujourd'hui";
+  if (days === 1) return 'Demain';
+  if (days === -1) return 'Hier';
+
+  return date.toLocaleDateString(undefined, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+}
+
+export function formatTime(date: Date): string {
+  return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+}
+
 export function formatEventDate(value: string | Date | null): string {
   const date = value instanceof Date ? value : parsePbDate(value);
   if (!date) return 'Date à définir';

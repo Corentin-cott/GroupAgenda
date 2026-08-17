@@ -3,7 +3,7 @@ import * as Crypto from 'expo-crypto';
 import * as Linking from 'expo-linking';
 import { pb } from '@/lib/pocketbase';
 import { toPbDate } from '@/lib/date';
-import type { GroupInviteRecord, GroupRecord } from '@/types/pocketbase';
+import type { GroupInviteRecord, GroupMemberRecord, GroupRecord } from '@/types/pocketbase';
 
 export const INVITE_TTL_DAYS = 7;
 
@@ -14,6 +14,20 @@ export function getGroup(groupId: string): Promise<GroupRecord> {
 /** Le créateur est inscrit comme premier membre par un hook serveur. */
 export function createGroup(name: string): Promise<GroupRecord> {
   return pb.collection('groups').create({ name: name.trim() });
+}
+
+export function listGroupMembers(groupId: string): Promise<GroupMemberRecord[]> {
+  return pb.collection('group_members').getFullList({
+    filter: pb.filter('group = {:groupId}', { groupId }),
+    expand: 'user',
+    sort: 'created',
+    requestKey: `members_${groupId}`,
+  });
+}
+
+/** Le groupe est supprimé côté serveur si c'était le dernier membre. */
+export function leaveGroup(membershipId: string): Promise<boolean> {
+  return pb.collection('group_members').delete(membershipId);
 }
 
 /** 64 caractères URL-safe : `octet & 63` est non biaisé, 256 étant divisible par 64. */

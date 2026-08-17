@@ -4,6 +4,7 @@ import type { RecordSubscription, UnsubscribeFunc } from 'pocketbase';
 import { pb } from '@/lib/pocketbase';
 import { useAuth } from '@/providers/AuthProvider';
 import type { EventRecord } from '@/types/pocketbase';
+import { useAppForeground } from './useAppForeground';
 
 export interface UseGroupEventsResult {
   events: EventRecord[];
@@ -107,6 +108,8 @@ export function useGroupEvents(groupId: string | undefined): UseGroupEventsResul
       void unsubscribe?.();
     };
   }, [groupId, user?.id, fetchEvents]);
+
+  useAppForeground(fetchEvents);
 
   return { events, isLoading, error, refresh: fetchEvents };
 }
