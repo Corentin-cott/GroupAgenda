@@ -38,6 +38,18 @@ export function startOfDay(date: Date): Date {
   return copy;
 }
 
+export function addDays(date: Date, days: number): Date {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+/** Lundi de la semaine contenant `date`. */
+export function startOfWeek(date: Date): Date {
+  const start = startOfDay(date);
+  return addDays(start, -((start.getDay() + 6) % 7));
+}
+
 /** Clé de regroupement stable en heure locale (`2026-08-17`). */
 export function dayKey(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;

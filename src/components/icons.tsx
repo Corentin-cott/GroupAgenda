@@ -63,6 +63,23 @@ export function ChevronLeftIcon({ color, size = 24 }: IconProps) {
   );
 }
 
+export function ChevronRightIcon({ color, size = 24 }: IconProps) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <Path d="M9 18 L15 12 L9 6" />
+    </Svg>
+  );
+}
+
 export function SettingsIcon({ color, size = 22 }: IconProps) {
   return (
     <Svg

@@ -3,23 +3,41 @@ import {
   ActivityIndicator,
   Pressable,
   RefreshControl,
+  ScrollView,
   SectionList,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { Card } from '@/components/Card';
 import { HeaderButton } from '@/components/HeaderButton';
+import { MonthCalendar } from '@/components/MonthCalendar';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { Screen } from '@/components/Screen';
+import { SegmentedField } from '@/components/SegmentedField';
+import { WeekCalendar } from '@/components/WeekCalendar';
 import { UserPlusIcon, UsersIcon } from '@/components/icons';
+import { EventCard } from '@/features/events/EventCard';
 import { useGroupEvents } from '@/hooks/useGroupEvents';
 import { useGroupRsvpSummary } from '@/hooks/useGroupRsvpSummary';
-import { dayKey, formatDayLabel, formatTime, parsePbDate, startOfDay } from '@/lib/date';
+import {
+  dayKey,
+  formatDayLabel,
+  parsePbDate,
+  startOfDay,
+  startOfWeek,
+} from '@/lib/date';
 import { useThemedStyles } from '@/theme/ThemeProvider';
 import type { Theme } from '@/theme/tokens';
 import type { EventRecord } from '@/types/pocketbase';
+
+type ViewMode = 'list' | 'month' | 'week';
+
+const VIEW_OPTIONS: { value: ViewMode; label: string }[] = [
+  { value: 'list', label: 'Liste' },
+  { value: 'month', label: 'Mois' },
+  { value: 'week', label: 'Semaine' },
+];
 
 interface DaySection {
   key: string;
@@ -55,12 +73,39 @@ export default function GroupAgendaScreen() {
   const { events, isLoading, error, refresh } = useGroupEvents(groupId);
   const rsvpSummary = useGroupRsvpSummary(groupId);
   const styles = useThemedStyles(createStyles);
+
+  const [view, setView] = useState<ViewMode>('list');
   const [showPast, setShowPast] = useState(false);
+  const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
+  const [selectedDay, setSelectedDay] = useState(() => startOfDay(new Date()));
 
   const { sections, pastCount } = useMemo(
     () => buildSections(events, showPast),
     [events, showPast],
   );
+
+  const eventsByDay = useMemo(() => {
+    const map = new Map<string, EventRecord[]>();
+    for (const event of events) {
+      const date = parsePbDate(event.start_date);
+      if (!date) continue;
+      const key = dayKey(date);
+      map.set(key, [...(map.get(key) ?? []), event]);
+    }
+    return map;
+  }, [events]);
+
+  const attendingIds = useMemo(
+    () =>
+      new Set(
+        Object.entries(rsvpSummary)
+          .filter(([, summary]) => summary.attending)
+          .map(([eventId]) => eventId),
+      ),
+    [rsvpSummary],
+  );
+
+  const openEvent = (event: EventRecord) => router.push(`/group/${groupId}/event/${event.id}`);
 
   const screenOptions = {
     title: 'Agenda',
@@ -96,61 +141,94 @@ export default function GroupAgendaScreen() {
     );
   }
 
+  const selectedEvents = eventsByDay.get(dayKey(selectedDay)) ?? [];
+
   return (
     <Screen>
       <Stack.Screen options={screenOptions} />
 
-      <SectionList
-        sections={sections}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        stickySectionHeadersEnabled={false}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} />}
-        ListHeaderComponent={
-          pastCount > 0 ? (
-            <Pressable onPress={() => setShowPast((previous) => !previous)} hitSlop={8}>
-              <Text style={styles.toggle}>
-                {showPast
-                  ? 'Masquer les événements passés'
-                  : `Afficher ${pastCount} événement${pastCount > 1 ? 's' : ''} passé${pastCount > 1 ? 's' : ''}`}
-              </Text>
-            </Pressable>
-          ) : null
-        }
-        ListEmptyComponent={<Text style={styles.empty}>Aucun événement à venir.</Text>}
-        renderSectionHeader={({ section }) => (
-          <Text style={[styles.dayLabel, section.past && styles.dayLabelPast]}>
-            {section.title}
-          </Text>
-        )}
-        renderItem={({ item, section }) => {
-          const { count, attending } = rsvpSummary[item.id] ?? { count: 0, attending: false };
-          const date = parsePbDate(item.start_date);
-          return (
-            <Card
-              onPress={() => router.push(`/group/${groupId}/event/${item.id}`)}
-              style={section.past ? styles.cardPast : undefined}
-            >
-              <View style={styles.row}>
-                <Text style={styles.title}>{item.title}</Text>
-                {attending && (
-                  <View style={styles.check} accessibilityLabel="Tu es inscrit à cet événement">
-                    <Text style={styles.checkMark}>✓</Text>
-                  </View>
-                )}
-              </View>
-              <Text style={styles.meta}>{date ? formatTime(date) : 'Heure à définir'}</Text>
-              {item.type === 'rsvp' && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeLabel}>
-                    {count} inscrit{count > 1 ? 's' : ''}
-                  </Text>
-                </View>
-              )}
-            </Card>
-          );
-        }}
-      />
+      <View style={styles.switcher}>
+        <SegmentedField value={view} options={VIEW_OPTIONS} onChange={setView} />
+      </View>
+
+      {view === 'list' && (
+        <SectionList
+          sections={sections}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          stickySectionHeadersEnabled={false}
+          refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} />}
+          ListHeaderComponent={
+            pastCount > 0 ? (
+              <Pressable onPress={() => setShowPast((previous) => !previous)} hitSlop={8}>
+                <Text style={styles.toggle}>
+                  {showPast
+                    ? 'Masquer les événements passés'
+                    : `Afficher ${pastCount} événement${pastCount > 1 ? 's' : ''} passé${pastCount > 1 ? 's' : ''}`}
+                </Text>
+              </Pressable>
+            ) : null
+          }
+          ListEmptyComponent={<Text style={styles.empty}>Aucun événement à venir.</Text>}
+          renderSectionHeader={({ section }) => (
+            <Text style={[styles.dayLabel, section.past && styles.dayLabelPast]}>
+              {section.title}
+            </Text>
+          )}
+          renderItem={({ item, section }) => (
+            <EventCard
+              event={item}
+              summary={rsvpSummary[item.id]}
+              dimmed={section.past}
+              onPress={() => openEvent(item)}
+            />
+          )}
+        />
+      )}
+
+      {view === 'month' && (
+        <ScrollView
+          contentContainerStyle={styles.list}
+          refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} />}
+        >
+          <MonthCalendar
+            month={anchor}
+            onMonthChange={setAnchor}
+            selected={selectedDay}
+            onSelect={setSelectedDay}
+            markedDays={new Set(eventsByDay.keys())}
+          />
+
+          <Text style={styles.dayLabel}>{formatDayLabel(selectedDay)}</Text>
+          {selectedEvents.length === 0 ? (
+            <Text style={styles.empty}>Aucun événement ce jour.</Text>
+          ) : (
+            selectedEvents.map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+                summary={rsvpSummary[event.id]}
+                onPress={() => openEvent(event)}
+              />
+            ))
+          )}
+        </ScrollView>
+      )}
+
+      {view === 'week' && (
+        <ScrollView
+          contentContainerStyle={styles.list}
+          refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} />}
+        >
+          <WeekCalendar
+            weekStart={startOfWeek(anchor)}
+            onWeekChange={setAnchor}
+            eventsByDay={eventsByDay}
+            attendingIds={attendingIds}
+            onSelectEvent={openEvent}
+          />
+        </ScrollView>
+      )}
 
       <PrimaryButton
         label="Nouvel événement"
@@ -164,6 +242,7 @@ export default function GroupAgendaScreen() {
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
     headerActions: { flexDirection: 'row', alignItems: 'center' },
+    switcher: { marginBottom: theme.space.md },
     list: { gap: theme.space.sm, paddingBottom: theme.space.sm },
     toggle: { ...theme.text.meta, color: theme.colors.accent, paddingVertical: theme.space.xs },
     dayLabel: {
@@ -173,33 +252,6 @@ const createStyles = (theme: Theme) =>
       marginTop: theme.space.md,
     },
     dayLabelPast: { color: theme.colors.textMuted },
-    cardPast: { opacity: 0.6 },
-    row: { flexDirection: 'row', alignItems: 'flex-start', gap: theme.space.sm },
-    title: { ...theme.text.heading, flex: 1 },
-    check: {
-      width: 22,
-      height: 22,
-      borderRadius: 11,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: theme.colors.accent,
-    },
-    checkMark: {
-      fontFamily: theme.text.body.fontFamily,
-      fontSize: 13,
-      fontWeight: '700',
-      color: theme.colors.onAccent,
-    },
-    meta: theme.text.meta,
-    badge: {
-      alignSelf: 'flex-start',
-      marginTop: theme.space.xs + 2,
-      backgroundColor: theme.colors.accentSoft,
-      borderRadius: theme.radius.sm,
-      paddingHorizontal: theme.space.sm,
-      paddingVertical: 3,
-    },
-    badgeLabel: { ...theme.text.label, color: theme.colors.accent },
     empty: { ...theme.text.meta, textAlign: 'center', marginTop: theme.space.xl },
     error: { ...theme.text.body, color: theme.colors.danger, textAlign: 'center' },
     cta: { marginTop: theme.space.md },
