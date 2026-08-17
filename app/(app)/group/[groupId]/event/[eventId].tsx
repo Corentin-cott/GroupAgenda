@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { Avatar } from '@/components/Avatar';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { Screen } from '@/components/Screen';
 import { EventForm } from '@/features/events/EventForm';
@@ -21,6 +22,12 @@ function participantLabel(rsvp: RsvpRecord, currentUser: UserRecord | null): str
     return `${currentUser.name || expanded?.name || currentUser.email} (Toi)`;
   }
   return expanded?.name || expanded?.email || 'Un membre';
+}
+
+/** La session porte notre propre enregistrement même si l'`expand` ne le renvoie pas. */
+function participantUser(rsvp: RsvpRecord, currentUser: UserRecord | null): UserRecord | null {
+  if (currentUser && rsvp.user === currentUser.id) return currentUser;
+  return rsvp.expand?.user ?? null;
 }
 
 export default function EventDetailScreen() {
@@ -141,9 +148,10 @@ export default function EventDetailScreen() {
             <Text style={styles.meta}>Personne pour l'instant.</Text>
           ) : (
             participants.map((rsvp) => (
-              <Text key={rsvp.id} style={styles.participant}>
-                {participantLabel(rsvp, user)}
-              </Text>
+              <View key={rsvp.id} style={styles.participantRow}>
+                <Avatar user={participantUser(rsvp, user)} size={32} />
+                <Text style={styles.participant}>{participantLabel(rsvp, user)}</Text>
+              </View>
             ))
           )}
         </View>
@@ -176,7 +184,13 @@ const createStyles = (theme: Theme) =>
       borderColor: theme.colors.separator,
     },
     sectionTitle: { ...theme.text.heading, marginTop: theme.space.sm },
-    participant: theme.text.body,
+    participantRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.space.md,
+      paddingVertical: theme.space.xs,
+    },
+    participant: { ...theme.text.body, flex: 1 },
     actions: {
       flexDirection: 'row',
       flexWrap: 'wrap',
