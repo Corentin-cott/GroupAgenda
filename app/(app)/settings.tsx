@@ -1,5 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { Stack, router } from 'expo-router';
+import { Avatar } from '@/components/Avatar';
+import { Card } from '@/components/Card';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { Screen } from '@/components/Screen';
 import { SegmentedField } from '@/components/SegmentedField';
@@ -17,10 +19,13 @@ export default function SettingsScreen() {
     <Screen>
       <Stack.Screen options={{ title: 'Réglages' }} />
 
-      <View style={styles.identity}>
-        <Text style={styles.name}>{user?.name || user?.email}</Text>
-        {!!user?.name && <Text style={styles.meta}>{user.email}</Text>}
-      </View>
+      <Card onPress={() => router.push('/profile')} style={styles.identity}>
+        <Avatar user={user} size={48} />
+        <View style={styles.identityText}>
+          <Text style={styles.name}>{user?.name || user?.email}</Text>
+          <Text style={styles.meta}>Modifier le profil</Text>
+        </View>
+      </Card>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Apparence</Text>
@@ -45,10 +50,11 @@ export default function SettingsScreen() {
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
-    identity: { gap: 2, marginBottom: theme.space.lg },
-    name: theme.text.title,
+    identity: { flexDirection: 'row', alignItems: 'center', gap: theme.space.md },
+    identityText: { flex: 1, gap: 2 },
+    name: theme.text.heading,
     meta: theme.text.meta,
-    section: { gap: theme.space.sm, flex: 1 },
+    section: { gap: theme.space.sm, flex: 1, marginTop: theme.space.lg },
     sectionTitle: theme.text.heading,
     signOut: { marginTop: theme.space.lg },
   });

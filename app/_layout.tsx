@@ -8,10 +8,14 @@ import {
   ThemeProvider as NavigationThemeProvider,
 } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AppErrorBoundary } from '@/components/AppErrorBoundary';
 import { AuthProvider, useAuth } from '@/providers/AuthProvider';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 
 void SplashScreen.preventAutoHideAsync();
+
+/** Repris par Expo Router : sans lui, une exception de rendu donne un écran blanc. */
+export { AppErrorBoundary as ErrorBoundary };
 
 function RootNavigator() {
   const { isLoading } = useAuth();

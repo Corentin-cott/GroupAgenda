@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { Avatar } from '@/components/Avatar';
 import { Card } from '@/components/Card';
 import { HeaderButton } from '@/components/HeaderButton';
 import { PrimaryButton } from '@/components/PrimaryButton';
@@ -116,7 +117,8 @@ export default function GroupMembersScreen() {
         }
         ListEmptyComponent={<Text style={styles.hint}>Aucun membre.</Text>}
         renderItem={({ item }) => (
-          <Card>
+          <Card style={styles.member}>
+            <Avatar user={item.expand?.user} size={40} />
             <Text style={styles.name}>{memberLabel(item, user)}</Text>
           </Card>
         )}
@@ -140,7 +142,8 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     list: { gap: theme.space.sm },
     hint: { ...theme.text.meta, marginBottom: theme.space.sm },
-    name: theme.text.body,
+    member: { flexDirection: 'row', alignItems: 'center', gap: theme.space.md },
+    name: { ...theme.text.body, flex: 1 },
     error: { ...theme.text.meta, color: theme.colors.danger, marginTop: theme.space.sm },
     footer: { marginTop: theme.space.md },
   });
