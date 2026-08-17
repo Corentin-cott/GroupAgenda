@@ -1,4 +1,6 @@
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import type { AgendaEntry } from '@/features/agenda/types';
 import { addDays, dayKey, formatTime, parsePbDate } from '@/lib/date';
 import { useTheme, useThemedStyles } from '@/theme/ThemeProvider';
@@ -13,7 +15,7 @@ interface WeekCalendarProps {
   onRefresh?: () => void;
 }
 
-/** Sept jours empilés, la navigation restant fixe au-dessus du défilement. */
+/** Trois semaines côte à côte, la courante au centre : balayer change de semaine. */
 export function WeekCalendar({
   weekStart,
   onWeekChange,
@@ -24,9 +26,74 @@ export function WeekCalendar({
   const { theme } = useTheme();
   const styles = useThemedStyles(createStyles);
 
-  const days = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
+  const pager = useRef<ScrollView>(null);
+  const [pageWidth, setPageWidth] = useState(0);
+
+  // Recentre après un changement de semaine, d'où qu'il vienne : balayage,
+  // chevrons, ou première mesure de largeur.
+  useEffect(() => {
+    if (pageWidth > 0) pager.current?.scrollTo({ x: pageWidth, animated: false });
+  }, [weekStart, pageWidth]);
+
   const todayKey = dayKey(new Date());
-  const last = days[6]!;
+  const weeks = [addDays(weekStart, -7), weekStart, addDays(weekStart, 7)];
+  const last = addDays(weekStart, 6);
+
+  const syncWidth = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const width = event.nativeEvent.layoutMeasurement.width;
+    if (width > 0 && Math.abs(width - pageWidth) > 1) setPageWidth(width);
+  };
+
+  const onPageSettled = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const width = event.nativeEvent.layoutMeasurement.width || pageWidth;
+    if (width <= 0) return;
+
+    const page = Math.round(event.nativeEvent.contentOffset.x / width);
+    if (page !== 1) onWeekChange(addDays(weekStart, page === 0 ? -7 : 7));
+  };
+
+  const renderDay = (day: Date) => {
+    const key = dayKey(day);
+    const dayEntries = entriesByDay.get(key) ?? [];
+    const isToday = key === todayKey;
+
+    return (
+      <View key={key} style={[styles.day, isToday && styles.dayToday]}>
+        <View style={styles.dayHead}>
+          <Text style={[styles.dayName, isToday && styles.todayText]}>
+            {day.toLocaleDateString(undefined, { weekday: 'short' })}
+          </Text>
+          <Text style={[styles.dayNumber, isToday && styles.todayText]}>{day.getDate()}</Text>
+        </View>
+
+        <View style={styles.dayEvents}>
+          {dayEntries.length === 0 ? (
+            <Text style={styles.emptyDay}>—</Text>
+          ) : (
+            dayEntries.map((entry) => {
+              const date = parsePbDate(entry.start);
+              return (
+                <Pressable
+                  key={`${entry.source}-${entry.id}`}
+                  style={styles.chip}
+                  onPress={() => onSelectEntry(entry)}
+                >
+                  <Text style={styles.chipTime}>{date ? formatTime(date) : '—'}</Text>
+                  <Text
+                    style={[styles.chipTitle, !entry.visible && styles.chipTitleHidden]}
+                    numberOfLines={2}
+                  >
+                    {entry.title}
+                  </Text>
+                  {entry.attending && <Text style={styles.chipCheck}>✓</Text>}
+                </Pressable>
+              );
+            })
+          )}
+        </View>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.wrapper}>
@@ -54,54 +121,28 @@ export function WeekCalendar({
       </View>
 
       <ScrollView
-        style={styles.days}
-        contentContainerStyle={styles.daysContent}
-        refreshControl={
-          onRefresh ? <RefreshControl refreshing={false} onRefresh={onRefresh} /> : undefined
-        }
+        ref={pager}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onLayout={(event) => setPageWidth(event.nativeEvent.layout.width)}
+        onScroll={syncWidth}
+        onMomentumScrollEnd={onPageSettled}
+        style={styles.pager}
       >
-        {days.map((day) => {
-          const key = dayKey(day);
-          const dayEntries = entriesByDay.get(key) ?? [];
-          const isToday = key === todayKey;
-
-          return (
-            <View key={key} style={[styles.day, isToday && styles.dayToday]}>
-              <View style={styles.dayHead}>
-                <Text style={[styles.dayName, isToday && styles.todayText]}>
-                  {day.toLocaleDateString(undefined, { weekday: 'short' })}
-                </Text>
-                <Text style={[styles.dayNumber, isToday && styles.todayText]}>{day.getDate()}</Text>
-              </View>
-
-              <View style={styles.dayEvents}>
-                {dayEntries.length === 0 ? (
-                  <Text style={styles.emptyDay}>—</Text>
-                ) : (
-                  dayEntries.map((entry) => {
-                    const date = parsePbDate(entry.start);
-                    return (
-                      <Pressable
-                        key={`${entry.source}-${entry.id}`}
-                        style={styles.chip}
-                        onPress={() => onSelectEntry(entry)}
-                      >
-                        <Text style={styles.chipTime}>{date ? formatTime(date) : '—'}</Text>
-                        <Text
-                          style={[styles.chipTitle, !entry.visible && styles.chipTitleHidden]}
-                          numberOfLines={2}
-                        >
-                          {entry.title}
-                        </Text>
-                        {entry.attending && <Text style={styles.chipCheck}>✓</Text>}
-                      </Pressable>
-                    );
-                  })
-                )}
-              </View>
-            </View>
-          );
-        })}
+        {weeks.map((start) => (
+          <View key={dayKey(start)} style={{ width: pageWidth }}>
+            <ScrollView
+              contentContainerStyle={styles.daysContent}
+              refreshControl={
+                onRefresh ? <RefreshControl refreshing={false} onRefresh={onRefresh} /> : undefined
+              }
+            >
+              {Array.from({ length: 7 }, (_, index) => renderDay(addDays(start, index)))}
+            </ScrollView>
+          </View>
+        ))}
       </ScrollView>
     </View>
   );
@@ -117,7 +158,7 @@ const createStyles = (theme: Theme) =>
       borderRadius: theme.radius.md,
       padding: theme.space.sm,
     },
-    days: { flex: 1 },
+    pager: { flex: 1 },
     daysContent: { paddingBottom: theme.space.xs },
     header: {
       flexDirection: 'row',
