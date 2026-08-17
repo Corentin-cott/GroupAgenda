@@ -103,13 +103,7 @@ export function MonthCalendar({
                     {day.getDate()}
                   </Text>
                 </View>
-                <View
-                  style={[
-                    styles.dot,
-                    markedDays.has(key) && styles.dotVisible,
-                    isSelected && markedDays.has(key) && styles.dotSelected,
-                  ]}
-                />
+                <View style={[styles.dot, markedDays.has(key) && styles.dotVisible]} />
               </Pressable>
             );
           })}
@@ -151,7 +145,8 @@ const createStyles = (theme: Theme) =>
     dayNumber: { ...theme.text.body, color: theme.colors.text },
     dayToday: { color: theme.colors.accent, fontWeight: '700' },
     dayNumberSelected: { color: theme.colors.onAccent, fontWeight: '600' },
+    // Posée sous la pastille du jour, donc sur le fond de la carte : elle garde
+    // l'accent même quand le jour est sélectionné.
     dot: { width: 5, height: 5, borderRadius: 3, marginTop: 2, backgroundColor: 'transparent' },
     dotVisible: { backgroundColor: theme.colors.accent },
-    dotSelected: { backgroundColor: theme.colors.onAccent },
   });

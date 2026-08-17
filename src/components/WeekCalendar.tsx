@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { addDays, dayKey, formatTime, parsePbDate } from '@/lib/date';
 import { useTheme, useThemedStyles } from '@/theme/ThemeProvider';
 import type { Theme } from '@/theme/tokens';
@@ -13,10 +13,7 @@ interface WeekCalendarProps {
   onSelectEvent: (event: EventRecord) => void;
 }
 
-/**
- * Sept colonnes de largeur minimale : elles s'étalent sur grand écran et
- * défilent horizontalement sur téléphone, sans breakpoint lu en JS.
- */
+/** Sept jours empilés : lisible sur téléphone sans défilement latéral. */
 export function WeekCalendar({
   weekStart,
   onWeekChange,
@@ -56,21 +53,21 @@ export function WeekCalendar({
         </Pressable>
       </View>
 
-      <ScrollView horizontal contentContainerStyle={styles.grid} showsHorizontalScrollIndicator>
-        {days.map((day) => {
-          const key = dayKey(day);
-          const dayEvents = eventsByDay.get(key) ?? [];
-          const isToday = key === todayKey;
+      {days.map((day) => {
+        const key = dayKey(day);
+        const dayEvents = eventsByDay.get(key) ?? [];
+        const isToday = key === todayKey;
 
-          return (
-            <View key={key} style={[styles.column, isToday && styles.columnToday]}>
-              <Text style={[styles.dayLabel, isToday && styles.dayLabelToday]}>
+        return (
+          <View key={key} style={[styles.day, isToday && styles.dayToday]}>
+            <View style={styles.dayHead}>
+              <Text style={[styles.dayName, isToday && styles.todayText]}>
                 {day.toLocaleDateString(undefined, { weekday: 'short' })}
               </Text>
-              <Text style={[styles.dayNumber, isToday && styles.dayLabelToday]}>
-                {day.getDate()}
-              </Text>
+              <Text style={[styles.dayNumber, isToday && styles.todayText]}>{day.getDate()}</Text>
+            </View>
 
+            <View style={styles.dayEvents}>
               {dayEvents.length === 0 ? (
                 <Text style={styles.emptyDay}>—</Text>
               ) : (
@@ -82,21 +79,19 @@ export function WeekCalendar({
                       style={styles.chip}
                       onPress={() => onSelectEvent(event)}
                     >
-                      <Text style={styles.chipTime}>
-                        {date ? formatTime(date) : '—'}
-                        {attendingIds.has(event.id) ? ' ✓' : ''}
-                      </Text>
-                      <Text style={styles.chipTitle} numberOfLines={3}>
+                      <Text style={styles.chipTime}>{date ? formatTime(date) : '—'}</Text>
+                      <Text style={styles.chipTitle} numberOfLines={2}>
                         {event.title}
                       </Text>
+                      {attendingIds.has(event.id) && <Text style={styles.chipCheck}>✓</Text>}
                     </Pressable>
                   );
                 })
               )}
             </View>
-          );
-        })}
-      </ScrollView>
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -118,27 +113,31 @@ const createStyles = (theme: Theme) =>
       paddingBottom: theme.space.sm,
     },
     rangeLabel: theme.text.heading,
-    grid: { flexGrow: 1 },
-    column: {
-      flex: 1,
-      minWidth: 96,
-      paddingHorizontal: 3,
-      paddingBottom: theme.space.xs,
-      gap: 3,
-      borderLeftWidth: Math.max(theme.borderWidth, 1),
-      borderLeftColor: theme.colors.separator,
+    day: {
+      flexDirection: 'row',
+      gap: theme.space.md,
+      paddingVertical: theme.space.sm,
+      paddingHorizontal: theme.space.sm,
+      borderTopWidth: Math.max(theme.borderWidth, 1),
+      borderTopColor: theme.colors.separator,
     },
-    columnToday: { backgroundColor: theme.colors.accentSoft, borderRadius: theme.radius.sm },
-    dayLabel: { ...theme.text.label, textAlign: 'center', textTransform: 'capitalize' },
-    dayNumber: { ...theme.text.body, textAlign: 'center', marginBottom: theme.space.xs },
-    dayLabelToday: { color: theme.colors.accent, fontWeight: '700' },
-    emptyDay: { ...theme.text.meta, textAlign: 'center' },
+    dayToday: { backgroundColor: theme.colors.accentSoft, borderRadius: theme.radius.sm },
+    dayHead: { width: 44, alignItems: 'center' },
+    dayName: { ...theme.text.label, textTransform: 'capitalize' },
+    dayNumber: { ...theme.text.heading, color: theme.colors.text },
+    todayText: { color: theme.colors.accent },
+    dayEvents: { flex: 1, gap: theme.space.xs, justifyContent: 'center' },
+    emptyDay: theme.text.meta,
     chip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.space.sm,
       backgroundColor: theme.colors.surfaceAlt,
       borderRadius: theme.radius.sm,
       paddingHorizontal: theme.space.sm,
-      paddingVertical: theme.space.xs,
+      paddingVertical: theme.space.xs + 2,
     },
     chipTime: { ...theme.text.label, color: theme.colors.accent },
-    chipTitle: { ...theme.text.meta, color: theme.colors.text },
+    chipTitle: { ...theme.text.meta, color: theme.colors.text, flex: 1 },
+    chipCheck: { ...theme.text.label, color: theme.colors.accent, fontWeight: '700' },
   });

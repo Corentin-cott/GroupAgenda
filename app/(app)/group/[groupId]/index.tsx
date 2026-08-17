@@ -20,6 +20,7 @@ import { UserPlusIcon, UsersIcon } from '@/components/icons';
 import { EventCard } from '@/features/events/EventCard';
 import { useGroupEvents } from '@/hooks/useGroupEvents';
 import { useGroupRsvpSummary } from '@/hooks/useGroupRsvpSummary';
+import { usePreference } from '@/hooks/usePreference';
 import {
   dayKey,
   formatDayLabel,
@@ -38,6 +39,8 @@ const VIEW_OPTIONS: { value: ViewMode; label: string }[] = [
   { value: 'month', label: 'Mois' },
   { value: 'week', label: 'Semaine' },
 ];
+
+const VIEW_MODES: readonly ViewMode[] = ['list', 'month', 'week'];
 
 interface DaySection {
   key: string;
@@ -74,7 +77,7 @@ export default function GroupAgendaScreen() {
   const rsvpSummary = useGroupRsvpSummary(groupId);
   const styles = useThemedStyles(createStyles);
 
-  const [view, setView] = useState<ViewMode>('list');
+  const [view, setView] = usePreference<ViewMode>('agenda_view', 'list', VIEW_MODES);
   const [showPast, setShowPast] = useState(false);
   const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
   const [selectedDay, setSelectedDay] = useState(() => startOfDay(new Date()));
