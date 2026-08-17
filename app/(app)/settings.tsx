@@ -16,7 +16,7 @@ export default function SettingsScreen() {
   const styles = useThemedStyles(createStyles);
 
   return (
-    <Screen>
+    <Screen scrollable maxWidth={520}>
       <Stack.Screen options={{ title: 'Réglages' }} />
 
       <Card onPress={() => router.push('/profile')} style={styles.identity}>
@@ -54,7 +54,7 @@ const createStyles = (theme: Theme) =>
     identityText: { flex: 1, gap: 2 },
     name: theme.text.heading,
     meta: theme.text.meta,
-    section: { gap: theme.space.sm, flex: 1, marginTop: theme.space.lg },
+    section: { gap: theme.space.sm, marginTop: theme.space.lg },
     sectionTitle: theme.text.heading,
     signOut: { marginTop: theme.space.lg },
   });
