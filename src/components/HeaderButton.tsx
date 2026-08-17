@@ -6,11 +6,17 @@ import type { Theme } from '@/theme/tokens';
 interface HeaderButtonProps {
   onPress: () => void;
   accessibilityLabel: string;
+  side?: 'left' | 'right';
   children: (color: string) => ReactNode;
 }
 
 /** Aligne l'icône sur la colonne de contenu et lui donne une zone tactile correcte. */
-export function HeaderButton({ onPress, accessibilityLabel, children }: HeaderButtonProps) {
+export function HeaderButton({
+  onPress,
+  accessibilityLabel,
+  side = 'right',
+  children,
+}: HeaderButtonProps) {
   const { theme } = useTheme();
   const styles = useThemedStyles(createStyles);
 
@@ -20,7 +26,7 @@ export function HeaderButton({ onPress, accessibilityLabel, children }: HeaderBu
       hitSlop={8}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      style={styles.button}
+      style={[styles.button, side === 'left' ? styles.left : styles.right]}
     >
       {({ pressed }) => children(pressed ? theme.colors.textMuted : theme.colors.accent)}
     </Pressable>
@@ -29,12 +35,15 @@ export function HeaderButton({ onPress, accessibilityLabel, children }: HeaderBu
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
-    button: {
-      minWidth: 44,
-      minHeight: 44,
+    button: { minWidth: 44, minHeight: 44, justifyContent: 'center' },
+    right: {
       alignItems: 'flex-end',
-      justifyContent: 'center',
       paddingLeft: theme.space.md,
       paddingRight: theme.space.lg,
+    },
+    left: {
+      alignItems: 'flex-start',
+      paddingLeft: theme.space.lg,
+      paddingRight: theme.space.md,
     },
   });

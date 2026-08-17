@@ -26,6 +26,23 @@ export function UserPlusIcon({ color, size = 22 }: IconProps) {
   );
 }
 
+export function ChevronLeftIcon({ color, size = 24 }: IconProps) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <Path d="M15 18 L9 12 L15 6" />
+    </Svg>
+  );
+}
+
 export function SettingsIcon({ color, size = 22 }: IconProps) {
   return (
     <Svg
